@@ -58,7 +58,7 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ubifs,oem@/oem@ubifs,userdata@/use
 #	TARGET_ROOTFS
 #################################################
 
-# Target rootfs : ubuntu(only emmc)/buildroot/busybox
+# Target rootfs : buildroot/busybox
 export LF_TARGET_ROOTFS=buildroot
 
 # Buildroot defconfig
@@ -103,6 +103,13 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 # enable rockchip test
 export RK_ENABLE_ROCKCHIP_TEST=y
 
+# enable rockchip wifi
+export RK_ENABLE_WIFI=y
+
+# config wifi ssid and passwd
+export LF_WIFI_SSID="Your wifi ssid"
+export LF_WIFI_PSK="Your wifi password"
+
 #################################################
 # 	PRE and POST
 #################################################
@@ -113,5 +120,5 @@ export RK_ENABLE_ROCKCHIP_TEST=y
 # # specify post.sh for delete/overlay files
 # export RK_PRE_BUILD_USERDATA_SCRIPT=luckfox-userdata-pre.sh
 
-# # declare overlay directory
-# export RK_POST_OVERLAY="overlay-luckfox-config overlay-luckfox-buildroot-init overlay-luckfox-buildroot-shadow"
+# declare overlay directory
+# export RK_POST_OVERLAY="overlay-luckfox-config overlay-luckfox-buildroot-init overlay-luckfox-buildroot-shadow overlay-luckfox-wifibt-firmware"

@@ -609,6 +609,10 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(0x19d1, 0x0001) },
 	{ USB_DEVICE(0x2ecc, 0x3012) },
 	{ USB_DEVICE(0x2c7c, 0x6002) },
+#if 1 /* Added by Simcom */
+	{ USB_DEVICE(0x05c6, 0x90DB) },
+	{ USB_DEVICE(0x1e0e, 0x9001) },
+#endif
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
@@ -2232,7 +2236,9 @@ static struct usb_serial_driver option_1port_device = {
 #ifdef CONFIG_PM
 	.suspend           = usb_wwan_suspend,
 	.resume            = usb_wwan_resume,
-	.reset_resume 	   = usb_wwan_resume,
+#if 1 /* Added by Simcom */
+	.reset_resume = usb_wwan_resume,
+#endif
 #endif
 };
 
@@ -2256,6 +2262,16 @@ static int option_probe(struct usb_serial *serial,
 	struct usb_interface_descriptor *iface_desc =
 				&serial->interface->cur_altsetting->desc;
 	unsigned long device_flags = id->driver_info;
+
+#if 1 /* Added by Simcom */
+	if (serial->dev->descriptor.idVendor == cpu_to_le16(0x05C6) && serial->dev->descriptor.idProduct == cpu_to_le16(0x90DB)
+		&& serial->interface->cur_altsetting->desc.bInterfaceNumber >= 2)
+		return -ENODEV;
+
+	if (serial->dev->descriptor.idVendor == cpu_to_le16(0x1E0E) && serial->dev->descriptor.idProduct == cpu_to_le16(0x9001)
+		&& serial->interface->cur_altsetting->desc.bInterfaceNumber >=5)
+		return -ENODEV;
+#endif
 
 	/* Never bind to the CD-Rom emulation interface	*/
 	if (iface_desc->bInterfaceClass == USB_CLASS_MASS_STORAGE)
