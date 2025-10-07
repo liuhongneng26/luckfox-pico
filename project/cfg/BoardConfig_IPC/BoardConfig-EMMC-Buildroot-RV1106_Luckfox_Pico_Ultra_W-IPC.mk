@@ -33,7 +33,7 @@ export RK_BOOT_MEDIUM=emmc
 export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
 
 # Uboot defconfig fragment
-export RK_UBOOT_DEFCONFIG_FRAGMENT="rk-emmc.config rv1106-luckfox-rgb-reset.config"
+export RK_UBOOT_DEFCONFIG_FRAGMENT="rk-emmc.config"
 
 # specify post.sh for delete/overlay files
 # export RK_PRE_BUILD_OEM_SCRIPT=rv1103-spi_nor-post.sh
