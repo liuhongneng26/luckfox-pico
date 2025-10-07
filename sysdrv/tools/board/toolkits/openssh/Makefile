@@ -8,8 +8,8 @@ CURRENT_DIR := $(shell pwd)
 export PKG_LIB_OPENSSL := $(CURRENT_DIR)/../openssl
 export PKG_LIB_ZLIB := $(CURRENT_DIR)/../zlib
 
-BUILD_TARGET := ${CURRENT_DIR}/openssh-9.4p1.tar.gz
-BUILD_TARGET_DIR := ${CURRENT_DIR}/openssh-9.4p1
+BUILD_TARGET := ${CURRENT_DIR}/openssh-10.1p1.tar.gz
+BUILD_TARGET_DIR := ${CURRENT_DIR}/openssh-10.1p1
 BUILD_TARGET_OUT := ${CURRENT_DIR}/out
 
 all: lib_openssl lib_zlib
@@ -25,7 +25,9 @@ all: lib_openssl lib_zlib
 			make -j$(SYSDRV_JOBS) ; \
 			make install-nokeys DESTDIR=${BUILD_TARGET_OUT} STRIP_OPT=; \
 		popd;)
-		cp -rfp $(BUILD_TARGET_OUT)/usr/local/libexec/sftp-server  $(SYSDRV_DIR_OUT_ROOTFS)/usr/libexec;
+	test -z "$(SYSDRV_DIR_OUT_ROOTFS)" || ( \
+		cp -rfp $(BUILD_TARGET_OUT)/usr/local/libexec/sftp-server  $(SYSDRV_DIR_OUT_ROOTFS)/usr/libexec;  \
+	)
 
 lib_openssl:
 	$(MAKE) -C ${PKG_LIB_OPENSSL}

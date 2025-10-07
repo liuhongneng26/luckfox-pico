@@ -7,8 +7,8 @@ CURRENT_DIR := $(shell pwd)
 
 export PKG_LIB_ZLIB := $(CURRENT_DIR)/../zlib
 
-BUILD_TARGET := ${CURRENT_DIR}/dropbear-2024.85.tar.bz2
-BUILD_TARGET_DIR := ${CURRENT_DIR}/dropbear-2024.85
+BUILD_TARGET := ${CURRENT_DIR}/dropbear-2025.88.tar.bz2
+BUILD_TARGET_DIR := ${CURRENT_DIR}/dropbear-2025.88
 BUILD_TARGET_OUT := ${CURRENT_DIR}/out
 
 all: lib_zlib
@@ -23,9 +23,11 @@ all: lib_zlib
 			make -j$(SYSDRV_JOBS); \
 			make install; \
 			popd;)
-	cp -rfp $(BUILD_TARGET_OUT)/sbin/*  $(SYSDRV_DIR_OUT_ROOTFS)/sbin;
-	cp -rfp $(BUILD_TARGET_OUT)/bin/dropbearkey  $(SYSDRV_DIR_OUT_ROOTFS)/bin;
-	cp -rfp $(CURRENT_DIR)/S60dropbear  $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/;
+	test -z "$(SYSDRV_DIR_OUT_ROOTFS)" || ( \
+	cp -rfp $(BUILD_TARGET_OUT)/sbin/*  $(SYSDRV_DIR_OUT_ROOTFS)/sbin; \
+	cp -rfp $(BUILD_TARGET_OUT)/bin/dropbearkey  $(SYSDRV_DIR_OUT_ROOTFS)/bin; \
+	cp -rfp $(CURRENT_DIR)/S60dropbear  $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/; \
+	)
 
 lib_zlib:
 	$(MAKE) -C ${PKG_LIB_ZLIB}

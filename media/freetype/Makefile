@@ -14,8 +14,8 @@ export PKG_LIB_ZLIB := $(CURRENT_DIR)/../../../sysdrv/tools/board/toolkits/zlib/
 
 PKG_CONFIG_PATH3=${PKG_LIB_ZLIB}/out/lib/pkgconfig
 
-BUILD_TARGET := ${CURRENT_DIR}/freetype-2.13.3.tar.xz
-BUILD_TARGET_DIR := ${CURRENT_DIR}/freetype-2.13.3
+BUILD_TARGET := ${CURRENT_DIR}/freetype-2.14.1.tar.xz
+BUILD_TARGET_DIR := ${CURRENT_DIR}/freetype-2.14.1
 BUILD_TARGET_OUT := ${CURRENT_DIR}/out
 
 all:
@@ -31,6 +31,8 @@ all:
 		make install; \
 	popd;)
 	-rm -rf ${CURRENT_DIR}/out/share
+	mkdir -p ${CURRENT_DIR}/out/share
+	cp ${CURRENT_DIR}/simsun_en.ttf ${CURRENT_DIR}/out/share/
 	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_MEDIA_OUTPUT), $(BUILD_TARGET_OUT))
 
 distclean:

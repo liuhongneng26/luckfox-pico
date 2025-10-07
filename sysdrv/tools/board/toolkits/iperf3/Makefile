@@ -40,7 +40,9 @@ all:
 		make install > /dev/null; \
 		$(SYSDRV_CROSS)-strip $(CURRENT_DIR)/$(PKG_BIN)/bin/iperf3; \
 	popd; )
-	cp -rfp $(CURRENT_DIR)/$(PKG_BIN)/bin/iperf3  $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin
+	test -z "$(SYSDRV_DIR_OUT_ROOTFS)" || ( \
+	cp -rfp $(CURRENT_DIR)/$(PKG_BIN)/bin/iperf3  $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin \
+	)
 
 distclean:
 	-rm -rf $(PKG_BIN) $(PKG_NAME_IPERF3)

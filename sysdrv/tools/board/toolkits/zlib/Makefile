@@ -16,8 +16,8 @@ endif
 #PKG_TARBALL_ZLIB := zlib-1.2.11.tar.xz
 #PKG_NAME_ZLIB := zlib-1.2.11
 
-PKG_TARBALL_ZLIB := zlib-1.3.tar.gz
-PKG_NAME_ZLIB := zlib-1.3
+PKG_TARBALL_ZLIB := zlib-1.3.1.tar.gz
+PKG_NAME_ZLIB := zlib-1.3.1
 
 PKG_BIN := out
 

@@ -7,8 +7,8 @@ CURRENT_DIR := $(shell pwd)
 
 export LIB_NCURSES := $(CURRENT_DIR)/../ncurses
 
-BUILD_TARGET := ${CURRENT_DIR}/htop-3.3.0.tar.xz
-BUILD_TARGET_DIR := ${CURRENT_DIR}/htop-3.3.0
+BUILD_TARGET := ${CURRENT_DIR}/htop-3.4.1.tar.xz
+BUILD_TARGET_DIR := ${CURRENT_DIR}/htop-3.4.1
 BUILD_TARGET_OUT := ${CURRENT_DIR}/out
 
 all: lib_ncurses
@@ -25,7 +25,9 @@ all: lib_ncurses
 			make -j$(SYSDRV_JOBS); \
 			make install; \
 		popd;)
-	cp -rfp $(BUILD_TARGET_OUT)/bin/htop  $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin;
+	test -z "$(SYSDRV_DIR_OUT_ROOTFS)" || ( \
+	cp -rfp $(BUILD_TARGET_OUT)/bin/htop  $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin; \
+	)
 
 clean: distclean
 
