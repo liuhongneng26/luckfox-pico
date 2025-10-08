@@ -109,9 +109,6 @@
 			size = <0xA00000>; //10M
 			linux,cma-default;
 		};
-		mmc_ecsd: mmc@3f000 {
-			reg = <0x3f000 0x00001000>;
-		};
 	};
 
 	acodec_sound: acodec-sound {
@@ -447,7 +444,7 @@
 &i2c3 {
 	status = "okay";
 	clock-frequency = <100000>;
-	GT911:touchscreen {
+	GT911:touchscreen@14 {
 		compatible = "goodix,gt911";
 		reg = <0x14>;
 
