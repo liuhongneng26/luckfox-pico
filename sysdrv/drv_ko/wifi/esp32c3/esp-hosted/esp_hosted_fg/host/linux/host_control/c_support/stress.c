@@ -27,18 +27,18 @@
 
 static void inline usage(char *argv[])
 {
-	printf("sudo %s <num_of_iterations> [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s <ESP 'network_adaptor.bin' path>]\n",
+	printf("sudo %s <num_of_iterations> [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s <ESP 'network_adaptor.bin' path>]\n",
 		argv[0], SET_STA_MAC_ADDR, GET_STA_MAC_ADDR, SET_SOFTAP_MAC_ADDR, GET_SOFTAP_MAC_ADDR, GET_AP_SCAN_LIST,
 		STA_CONNECT, GET_STA_CONFIG, STA_DISCONNECT, SET_WIFI_MODE, GET_WIFI_MODE,
 		RESET_SOFTAP_VENDOR_IE, SET_SOFTAP_VENDOR_IE, SOFTAP_START, GET_SOFTAP_CONFIG, SOFTAP_CONNECTED_STA_LIST,
 		SOFTAP_STOP, SET_WIFI_POWERSAVE_MODE, GET_WIFI_POWERSAVE_MODE, SET_WIFI_MAX_TX_POWER, GET_WIFI_CURR_TX_POWER, GET_FW_VERSION,
-		OTA);
-	printf("\n\nFor example, \nsudo %s 5 %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s <ESP 'network_adaptor.bin' path>\n",
+		SET_COUNTRY_CODE, SET_COUNTRY_CODE_ENABLED, GET_COUNTRY_CODE, OTA);
+	printf("\n\nFor example, \nsudo %s 5 %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s <ESP 'network_adaptor.bin' path>\n",
 		argv[0], SET_STA_MAC_ADDR, GET_STA_MAC_ADDR, SET_SOFTAP_MAC_ADDR, GET_SOFTAP_MAC_ADDR, GET_AP_SCAN_LIST,
 		STA_CONNECT, GET_STA_CONFIG, STA_DISCONNECT, SET_WIFI_MODE, GET_WIFI_MODE,
 		RESET_SOFTAP_VENDOR_IE, SET_SOFTAP_VENDOR_IE, SOFTAP_START, GET_SOFTAP_CONFIG, SOFTAP_CONNECTED_STA_LIST,
 		SOFTAP_STOP, SET_WIFI_POWERSAVE_MODE, GET_WIFI_POWERSAVE_MODE, SET_WIFI_MAX_TX_POWER, GET_WIFI_CURR_TX_POWER, GET_FW_VERSION,
-		OTA);
+		SET_COUNTRY_CODE, SET_COUNTRY_CODE_ENABLED, GET_COUNTRY_CODE, OTA);
 }
 
 int main(int argc, char *argv[])
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 	int stress_test_count = 0;
 	int str_args_start = 2;
 	char version[30] = {'\0'};
+	char mac_address[30] = {'\0'};
 
 	if(getuid()) {
 		printf("Please re-run program with superuser access\n");
@@ -82,11 +83,12 @@ int main(int argc, char *argv[])
 		str_args_start = 1;
 	}
 
+	test_is_network_split_on();
 	register_event_callbacks();
 	test_config_heartbeat();
 
 	/* Print FW Version by Default */
-	printf("------ ESP-Hosted FW [%s] ------\n", test_get_fw_version(version));
+	printf("------ ESP-Hosted FW [%s] ------\n", test_get_fw_version(version, sizeof(version)));
 
 	for (int test_count=0; test_count<stress_test_count; test_count++) {
 		printf("\n\nIteration %u:\n",test_count+1);
@@ -95,16 +97,16 @@ int main(int argc, char *argv[])
 
 			if (0 == strncasecmp(SET_STA_MAC_ADDR, argv[i],
 						sizeof(SET_STA_MAC_ADDR))) {
-				test_station_mode_set_mac_addr_of_esp();
+				test_station_mode_set_mac_addr_of_esp(STATION_MODE_MAC_ADDRESS);
 			} else if (0 == strncasecmp(GET_STA_MAC_ADDR, argv[i],
 						sizeof(GET_STA_MAC_ADDR))) {
-				test_station_mode_get_mac_addr();
+				test_station_mode_get_mac_addr(mac_address);
 			} else if (0 == strncasecmp(SET_SOFTAP_MAC_ADDR, argv[i],
 						sizeof(SET_SOFTAP_MAC_ADDR))) {
-				test_softap_mode_set_mac_addr_of_esp();
+				test_softap_mode_set_mac_addr_of_esp(SOFTAP_MODE_MAC_ADDRESS);
 			} else if (0 == strncasecmp(GET_SOFTAP_MAC_ADDR, argv[i],
 						sizeof(GET_SOFTAP_MAC_ADDR))) {
-				test_softap_mode_get_mac_addr();
+				test_softap_mode_get_mac_addr(mac_address);
 
 			} else if (0 == strncasecmp(GET_AP_SCAN_LIST, argv[i],
 						sizeof(GET_AP_SCAN_LIST))) {
@@ -162,6 +164,15 @@ int main(int argc, char *argv[])
 			} else if (0 == strncasecmp(GET_FW_VERSION, argv[i],
 						sizeof(GET_FW_VERSION))) {
 				test_print_fw_version();
+			} else if (0 == strncasecmp(SET_COUNTRY_CODE, argv[i],
+						sizeof(SET_COUNTRY_CODE))) {
+				test_set_country_code();
+			} else if (0 == strncasecmp(SET_COUNTRY_CODE_ENABLED, argv[i],
+						sizeof(SET_COUNTRY_CODE_ENABLED))) {
+				test_set_country_code_with_ieee80211d_on();
+			} else if (0 == strncasecmp(GET_COUNTRY_CODE, argv[i],
+						sizeof(GET_COUNTRY_CODE))) {
+				test_get_country_code();
 			} else if (0 == strncasecmp(OTA, argv[i], sizeof(OTA))) {
 				/* OTA ESP flashing */
 				printf("OTA binary path:%s\n",argv[i+1]);

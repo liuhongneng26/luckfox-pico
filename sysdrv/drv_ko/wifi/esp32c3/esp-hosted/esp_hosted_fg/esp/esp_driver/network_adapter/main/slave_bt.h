@@ -17,7 +17,11 @@
 #ifndef __SLAVE_BT_H__
 #define __SLAVE_BT_H__
 
-#ifdef CONFIG_BT_ENABLED
+#include "esp_err.h"
+
+// include only if BT component enabled and soc supports BT
+#if defined(CONFIG_BT_ENABLED) && defined(CONFIG_SOC_BT_SUPPORTED)
+#include "esp_bt.h"
 
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
   #include "driver/periph_ctrl.h"
@@ -50,7 +54,7 @@
     #define BLUETOOTH_UART   CONFIG_BTDM_CTRL_HCI_UART_NO
   #endif
 
-#elif (defined(CONFIG_IDF_TARGET_ESP32C2) || defined(CONFIG_IDF_TARGET_ESP32C6))
+#elif (defined(CONFIG_IDF_TARGET_ESP32C2) || defined(CONFIG_IDF_TARGET_ESP32C6) || defined(CONFIG_IDF_TARGET_ESP32C5))
 
   #define BLUETOOTH_BLE      1
 
@@ -85,14 +89,7 @@
     #define BT_RTS_PIN         19
     #define BT_CTS_PIN         23
 
-  #elif defined(CONFIG_IDF_TARGET_ESP32C2)
-
-      #define BT_TX_PIN         5
-      #define BT_RX_PIN         18
-      //#define BT_RTS_PIN        9
-      //#define BT_CTS_PIN        8
-
-  #elif defined(CONFIG_IDF_TARGET_ESP32C6)
+  #elif defined(CONFIG_IDF_TARGET_ESP32C2) || defined(CONFIG_IDF_TARGET_ESP32C6) || defined(CONFIG_IDF_TARGET_ESP32C5)
 
       #define BT_TX_PIN         CONFIG_BT_LE_HCI_UART_TX_PIN
       #define BT_RX_PIN         CONFIG_BT_LE_HCI_UART_RX_PIN
@@ -133,6 +130,6 @@ void deinitialize_bluetooth(void);
 esp_err_t initialise_bluetooth(void);
 uint8_t get_bluetooth_capabilities(void);
 
-#endif /* CONFIG_BT_ENABLED */
+#endif /* CONFIG_BT_ENABLED && CONFIG_SOC_BT_SUPPORTED */
 
 #endif /* __SLAVE_BT_H__ */

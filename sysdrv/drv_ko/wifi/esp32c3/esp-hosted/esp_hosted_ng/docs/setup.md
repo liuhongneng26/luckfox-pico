@@ -11,9 +11,11 @@
 - [2. Transport layer configuration](#2-transport-layer-configuration)
     + [2.1 SPI configuration](#21-spi-configuration) Wi-Fi and Bluetooth over SPI
     + [2.2 SDIO configuration](#22-sdio-configuration) Wi-Fi and Bluetooth over SDIO
-    + [2.3 SDIO/SPI + Uart configuration](#23-sdiospi-uart-configuration) Wi-Fi over SDIO/SPI and Bluetooth over UART
+    + [2.3 SDIO or SPI + Uart configuration](#23-sdio-or-spi-and-uart-configuration) Wi-Fi over SDIO/SPI and Bluetooth over UART
 - [3. Troubleshoot Setup Problems](#3-troubleshoot-setup-problems)
 - [4. Points to note](#4-points-to-note)
+- [5. Ota Support](#5-ota-support)
+- [6. Manually loading and unloading the Kernel Module](#6-manually-loading-and-unloading-the-kernel-module)
 
 # 1. Software setup
 * This section briefly explains software setup required for esp hosted device and host. Esp hosted device setup is divided into two parts 
@@ -82,19 +84,52 @@ Make sure that host machine is equipped with following:
 * Follow these steps to setup required configurations for desired transport layer [Transport layer configuration](#2-transport-layer-configuration)
 
 ### 1.3 ESP Comprehensive guide
-- **Note on Windows 11**: you can follow [these instructions](/esp_hosted_ng/esp/esp_driver/README.md#building-on-windows-11-using-command-prompt) to setup ESP-IDF to build the esp firmware.
-- :warning: **Following command is dangerous. It will revert all your local changes. Stash if need to keep them**.
+- **FOR linux based systems**.
 - Install the ESP-IDF using script
+> [!CAUTION]
+> This command will revert all your local changes. Stash the changes if still needed.
+
     ```sh
     $ cd esp_hosted/esp_hosted_ng/esp/esp_driver
-    $ cmake .
+    $ ./setup.sh
     ```
 * This will clone the required esp-idf repository and will setup it up for esp hosted firmware
 * Set-Up the esp firmware build environment using 
     ```sh
+    $ cd esp_hosted/esp_hosted_ng/esp/esp_driver/esp-idf
     $ . ./esp-idf/export.sh
     # Optionally, You can add alias for this command in ~/.bashrc for later use
     ``` 
+* To build, flash and monitor firmware
+    ```sh
+    $ cd esp_hosted/esp_hosted_ng/esp/esp_driver/network_adapter
+    $ `idf.py set-target <chip_name>` to set target
+    $ `idf.py build` to compile new firmware
+    $ `idf.py monitor` to monitor serial output
+    ```
+
+- **FOR Windows based systems**
+- Install and setup ESP-IDF on Windows as documented in the [Standard Setup of Toolchain for
+Windows](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html).
+
+- Use the ESP-IDF [Powershell Command
+Prompt](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html#using-the-command-prompt) to execute `esp_hosted/esp_hosted_ng/esp/esp_driver/setup.ps1`. It will setup `esp-idf` as a submodule to be used by `network_adapter`.
+
+> [!CAUTION]
+> 
+> This command will revert all your local changes. Stash the changes if still needed.
+
+- Setup compiling environment by running `export.ps1` in `esp_hosted/esp_hosted_ng/esp/esp_driver/esp-idf`
+directory
+
+* To build, flash and monitor firmware
+    ```sh
+    $ cd esp_hosted/esp_hosted_ng/esp/esp_driver/network_adapter
+    $ `idf.py set-target <chip_name>` to set target
+    $ `idf.py build` to compile new firmware
+    $ `idf.py monitor` to monitor serial output
+    ```
+
 * Once the environment is ready for esp firmware to be built follow these steps to setup required configurations for desired transport layer [Transport layer configuration](#2-transport-layer-configuration)
 
 # 2. Transport layer configuration
@@ -107,18 +142,18 @@ Make sure that host machine is equipped with following:
 * This is section is divided into following transport layers.
    1) [SPI configuration](#21-spi-configuration) Wi-Fi and Bluetooth over SPI
    2) [SDIO configuration](#22-sdio-configuration) Wifi and bluetooth over SDIO
-   4) [SDIO/SPI + Uart configuration](#23-sdiospi-uart-configuration) Wi-Fi over SDIO and Bluetooth over UART
+   4) [SDIO or SPI + Uart configuration](#23-sdio-or-spi-and-uart-configuration) Wi-Fi over SDIO and Bluetooth over UART
 
 ### 2.1 SPI configuration
 **Wi-Fi and Bluetooth over SPI**
 
-| Supported Targets | ESP32 | ESP32-S2 | ESP32-S3 | ESP32-C2 | ESP32-C3 | ESP32-C6 |
-| ----------------- | ----- | -------- | -------- |--------- |--------- |--------- |
+| Supported Targets | ESP32 | ESP32-S2 | ESP32-S3 | ESP32-C2 | ESP32-C3 | ESP32-C5 | ESP32-C6 |
+| ----------------- | ----- | -------- | -------- |--------- |--------- |--------- |--------- |
 * Hardware setup
     * In this setup, ESP board acts as a SPI peripheral and provides Wi-Fi capabilities to host. Please connect ESP board to Raspberry-Pi with jumper cables as mentioned below. Please use short jumper cables to ensure signal integrity. Raspberry Pi should be powered with correct incoming power rating. ESP can be powered through PC using micro-USB/USB-C cable.
     * **Pin Connections**
 
-        | Raspberry-Pi Pin | ESP32 | ESP32-S2/S3 | ESP32-C2/C3/C6 | Function |
+        | Raspberry-Pi Pin | ESP32 | ESP32-S2/S3 | ESP32-C2/C3/C5/C6 | Function |
         |:-------:|:---------:|:--------:|:--------:|:--------:|
         | 24 | IO15 | IO10 | IO10 | CS0 |
         | 23 | IO14 | IO12 | IO6 | SCLK |
@@ -153,6 +188,7 @@ Make sure that host machine is equipped with following:
          - add `ap_support` if you want to use interface as access point.
         * This script compiles and loads host driver on Raspberry-Pi. It also creates network interface `wlanX` which is used as a control interface for Wi-Fi on ESP peripheral
 
+        * Follow these steps to [Manually load the Kernel Module](6-manually-loading-and-unloading-the-kernel-module)
     * For esp firmware if you are using [ESP Quick start guide](#12-esp-quick-start-guide)
         * Please flash the required binaries using with command mentioned in `flashing_cmd.txt` within desired transport configuration folder as explained in [ESP Quick start guide](#12-esp-quick-start-guide).  
         * Use minicom or any similar terminal emulator with baud rate 115200 to fetch esp side logs on UART
@@ -203,16 +239,16 @@ Make sure that host machine is equipped with following:
     * In this setup, ESP board acts as a SDIO peripheral and provides Wi-Fi capabilities to host. Please connect ESP board to Raspberry-Pi with jumper cables as mentioned below. Raspberry Pi should be powered with correct incoming power rating. ESP can be powered through PC using micro-USB/USB-C cable.
     * **Pin connections**
 
-        | Raspberry-Pi Pin | ESP32 Pin | ESP32-C6 Pin | Function |
-        |:-------:|:---------:|:--------:|:--------:|
-        | 13 | IO13+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO23+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT3 |
-        | 15 | IO14 | IO19 | CLK |
-        | 16 | IO15+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO18+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | CMD |
-        | 18 | IO2+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO20+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT0 |
-        | 22 | IO4+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO21+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT1 |
-        | 31 | EN  | ESP Reset |
-        | 37 | IO12+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO22+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT2 |
-        | 39 | GND | GND | GND|
+        | Raspberry-Pi Pin | ESP32 Pin | ESP32-C6 Pin | ESP32-C5 | Function |
+        | :--------------: | :-------: | :----------: | :------: | :------: |
+        | 13 | IO13+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO23+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO13+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | DAT3 |
+        | 15 | IO14 | IO19 | IO9 | CLK |
+        | 16 | IO15+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO18+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO10+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | CMD |
+        | 18 | IO2+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO20+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO8+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT0 |
+        | 22 | IO4+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO21+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO7+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT1 |
+        | 31 | EN  | ESP Reset | ESP Reset | Reset |
+        | 37 | IO12+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO22+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO14+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT2 |
+        | 39 | GND | GND | GND | GND |
     * Raspberry-Pi pinout can be found [here!](https://pinout.xyz/pinout/sdio)
     * As SDIO faces signal integrity issues over jumper wires, we strongly recommend to **Design PCB boards with above connections**. If that is not possible. Use good quality extremely small (smaller than 5cm) jumper wires, all equal length. Join all possible grounds interconnected to lower noise. Add at least, 10k Ohm external pull-up resistors on 5 lines: CMD, DAT0-4. We use 51k Ohm resistors in our set-up.
 
@@ -226,14 +262,6 @@ Make sure that host machine is equipped with following:
     * Please reboot Raspberry-Pi after changing this file.
 * Setting up the environment and getting started
     * Host environment setup  
-        * As ESP32 & ESP32C6, both support SDIO, Let host know which slave chipset is being used by changing `ESP_SLAVE_CHIPSET` in `esp_hosted_ng/host/rpi_init.sh` as:
-            ```sh
-            ESP_SLAVE_CHIPSET="esp32"
-            ```
-            or
-            ```sh
-            ESP_SLAVE_CHIPSET="esp32c6"
-            ```
         * Execute following commands in root directory of cloned ESP-Hosted repository on Raspberry-Pi
             ```sh
             $ cd esp_hosted/esp_hosted_ng/host/
@@ -242,6 +270,7 @@ Make sure that host machine is equipped with following:
         - add `ap_support` if you want to use interface as access point.
         * This script compiles and loads host driver on Raspberry-Pi. It also creates network interface `wlanX` which is used for Wi-Fi in host.
 
+        * Follow these steps to [Manually load the Kernel Module](6-manually-loading-and-unloading-the-kernel-module)
     * For esp firmware if you are using [ESP Quick start guide](#12-esp-quick-start-guide)
         * Please flash the required binaries using with command mentioned in `flashing_cmd.txt` within desired transport configuration folder as explained in [ESP Quick start guide](#12-esp-quick-start-guide).  
         * Use minicom or any similar terminal emulator with baud rate 115200 to fetch esp side logs on UART
@@ -282,13 +311,13 @@ Make sure that host machine is equipped with following:
         ```
 * Once the one of ESP-Hosted-NG mode is set-up, proceed to how to use [**Wi-Fi** and **Bluetooth** over this setup](../README.md#3-get-started)
 
-### 2.3 SDIO/SPI + Uart configuration
+### 2.3 SDIO or SPI and Uart configuration
 **Wi-Fi over SDIO/SPI and Bluetooth over UART**
 
-| Supported Chipsets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-S3 | ESP32-C6 |
-| ------------------ | ----- | -------- | -------- | -------- | -------- |
-| 4 line UART supported | yes | no | yes | yes | no |
-| 2 line UART supported | yes | yes | yes | yes | yes |
+| Supported Chipsets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-S3 | ESP32-C6 | ESP32-C5 |
+| ------------------ | ----- | -------- | -------- | -------- | -------- | -------- |
+| 4 line UART supported | yes | no | yes | yes | no | no |
+| 2 line UART supported | yes | yes | yes | yes | yes | yes |
 * In this section, ESP chipset provides a way to run Bluetooth/BLE over UART interface.
 
 * This section is divided in two parts 
@@ -310,10 +339,10 @@ Make sure that host machine is equipped with following:
         | RTS | 11 | IO23 | IO20 | IO8 | CTS |
 
     * Two line setup
-        | Raspberry-Pi Pin Function | Raspberry-Pi Pin | ESP32-C2 | ESP32-C6 | ESP Function |
-        |:-------:|:--------:|:---------:|:---------:|:--------:|
-        | RX | 10 | IO5 | IO5 | TX |
-        | TX | 8 | IO18 | IO12 | RX |
+        | Raspberry-Pi Pin Function | Raspberry-Pi Pin | ESP32-C2 | ESP32-C6 | ESP32-C5 | ESP Function |
+        |:-------:|:--------:|:---------:|:---------:|:---------:|:--------:|
+        | RX | 10 | IO5 | IO5 | IO5 | TX |
+        | TX | 8 | IO18 | IO12 | IO13 | RX |
 
     * Raspberry-Pi pinout can be found [here!](https://pinout.xyz/pinout/uart)
     * In case you wish to reduce number of hardware lines, you may consider SPI_only or SDIO_only transports, where Wi-Fi and Bluetooth traffic is multiplexed on same bus and no need of extra UART pins. UART pin numbers are configurable. If you want to switch from 4 line UART mode to 2 lines, hardware flow control need to be turned off.
@@ -456,3 +485,77 @@ If Bootup event is not recieved in host `dmesg` as sample log above, please try 
 - We suggest to use the latest stable BlueZ release.
 <!--- TODO Whereas BLE 5.0 functionalities are tested with bluez 5.45+ -->
 
+### 5. Ota support
+- Over-The-Air (OTA) allows hosts to transport the new firmware to ESP device and update the device.
+- To update the firmware using the OTA please follow the commands on host.
+    ```sh
+    $ cd /esp_hosted/esp_hosted_ng/host
+    $ ./rpi_init.sh <transport> ota_file="/path/to/ota_file"
+    ```
+
+### 6. Manually loading and unloading the Kernel Module
+
+Once the kernel modules `esp32_sdio.ko` or `esp32_spi.ko` are built, they can be found in `esp_hosted/esp_hosted_ng/host/`. You may manually load or unload these modules as needed.
+
+---
+
+### **Module Parameters**
+
+| Parameter     | Description                                                  |
+| ------------- | ------------------------------------------------------------ |
+| `resetpin`    | GPIO pin used to reset the ESP peripheral                    |
+| `clockspeed`  | Clock frequency in MHz (max 50 for SDIO, 40 for SPI)         |
+| `raw_tp_mode` | Enables raw throughput mode to measure transport performance |
+| `ota_file`    | Path to the firmware binary for updating the ESP             |
+
+**Notes:**
+
+* `resetpin` is **mandatory**.
+* `clockspeed` is **optional**. If omitted:
+
+  * SDIO defaults to 25–50 MHz as per device tree.
+  * SPI defaults to 10 MHz.
+  * Ensure value is ≤50 MHz for SDIO, and does not exceed the device tree setting.
+* `raw_tp_mode` is **optional** and intended **only for testing the transport layer throughput**. It bypasses the protocol stack and sends raw DAPA frames directly between the host and ESP. Useful for stress testing or evaluating performance limits:
+
+  * `rawtp_host_to_esp`: Sends frames from Host → ESP.
+  * `rawtp_esp_to_host`: Sends frames from ESP → Host.
+* `ota_file` is **optional**. When specified, it triggers a firmware update on the ESP. After a successful update, the ESP reboots and reconnects automatically.
+
+---
+
+### **Loading the Module**
+
+**For SDIO:**
+
+```bash
+$ sudo insmod esp_hosted/esp_hosted_ng/host/esp32_sdio.ko resetpin=6
+```
+
+**For SPI:**
+
+```bash
+$ sudo insmod esp_hosted/esp_hosted_ng/host/esp32_spi.ko resetpin=6
+```
+
+You can also pass optional parameters:
+
+```bash
+$ sudo insmod esp32_sdio.ko resetpin=6 clockspeed=40 ota_file=/path/to/firmware.bin
+```
+
+---
+
+### **Unloading the Module**
+
+**For SDIO:**
+
+```bash
+$ sudo rmmod esp32_sdio
+```
+
+**For SPI:**
+
+```bash
+$ sudo rmmod esp32_spi
+```

@@ -21,6 +21,11 @@ if sys.version_info[0] < 3:
 	print("please re-run using python3")
 	exit()
 
+### reconfigure stdout to use utf-8 encoding
+### this is to prevent decoding errors when printing Unicode characters in SSIDs
+### Note: the console may not be handle the Unicode character to be displayed
+sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
+
 from time import *
 from py_parse.cmds import ctrl_cmd
 from py_parse.process import process_init_control_lib, process_deinit_control_lib, process_heartbeat
@@ -41,12 +46,16 @@ softap_pwd = 'ESPWiFi@123'
 sta_softap_mode = 'station+softap'
 max_tx_pwr_input = 22
 
+country_code = '01'
+
 event1 = 'esp_init'
 event2 = 'heartbeat'
-event3 = 'sta_connected_to_ap'
-event4 = 'sta_disconnect_from_ap'
-event5 = 'sta_connected_to_softap'
-event6 = 'sta_disconnect_from_softap'
+event3 = 'sta_connected'
+event4 = 'sta_disconnected'
+event5 = 'softap_sta_connected'
+event6 = 'softap_sta_disconnected'
+event7 = 'dhcp_dns_status'
+event8 = 'custom_packed_event'
 
 argumentList = sys.argv[1:]
 if argumentList and len(argumentList):
@@ -97,13 +106,17 @@ TEST_POWER_SAVE=(1 << bit)
 bit += 1
 
 TEST_WIFI_TX_POWER=(1 << bit)
+bit += 1
+
+TEST_COUNTRY_CODE=(1 << bit)
+bit += 1
 
 STRESS_TEST=(TEST_EVENTS | TEST_MODE_STA | TEST_SCAN_WIFI |
 		TEST_STATION_MAC | TEST_STATION_CONNECT_DISCONNECT |
 		TEST_MODE_SOFTAP | TEST_SOFTAP_MAC | TEST_SOFTAP_VENDOR_IE |
 		TEST_SOFTAP_START_STOP |  TEST_STATION_SOFTAP_MODE |
-		TEST_HEARTBEAT | TEST_POWER_SAVE | TEST_WIFI_TX_POWER)
-
+		TEST_HEARTBEAT | TEST_POWER_SAVE | TEST_WIFI_TX_POWER |
+		TEST_COUNTRY_CODE)
 
 process_init_control_lib()
 try:
@@ -246,6 +259,12 @@ try:
 			print("*************** "+str(i)+" ****************")
 			cmd.set_wifi_max_tx_power(max_tx_pwr_input)
 			cmd.get_wifi_curr_tx_power()
+
+	if (STRESS_TEST & TEST_COUNTRY_CODE):
+		for i in (range(STRESS_TEST_COUNT)):
+			print("*************** "+str(i)+" ****************")
+			cmd.set_country_code(country_code, True)
+			cmd.get_country_code()
 
 	process_deinit_control_lib(True)
 except:

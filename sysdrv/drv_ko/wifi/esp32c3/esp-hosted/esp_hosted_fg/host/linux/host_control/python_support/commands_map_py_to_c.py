@@ -89,6 +89,12 @@ feature_config.restype = POINTER(CONTROL_COMMAND)
 get_fw_version = commands_lib.get_fw_version
 get_fw_version.restype = POINTER(CONTROL_COMMAND)
 
+set_country_code = commands_lib.wifi_set_country_code
+set_country_code.restype = POINTER(CONTROL_COMMAND)
+
+get_country_code = commands_lib.wifi_get_country_code
+get_country_code.restype = POINTER(CONTROL_COMMAND)
+
 config_heartbeat = commands_lib.config_heartbeat
 config_heartbeat.restype = POINTER(CONTROL_COMMAND)
 
@@ -104,20 +110,15 @@ ota_end.restype = POINTER(CONTROL_COMMAND)
 hosted_free = commands_lib.hosted_free
 hosted_free.restype = None
 
-create_socket = commands_lib.create_socket
-create_socket.restype = c_int
+get_dhcp_dns_status = commands_lib.get_dhcp_dns_status
+get_dhcp_dns_status.restype = POINTER(CONTROL_COMMAND)
 
-close_socket = commands_lib.close_socket
-close_socket.restype = c_int
+set_dhcp_dns_status = commands_lib.set_dhcp_dns_status
+set_dhcp_dns_status.restype = POINTER(CONTROL_COMMAND)
 
-interface_up = commands_lib.interface_up
-interface_up.restype = c_int
+send_custom_rpc_unserialised_req_to_slave = commands_lib.send_custom_rpc_unserialised_req_to_slave
+send_custom_rpc_unserialised_req_to_slave.restype = POINTER(CONTROL_COMMAND)
 
-interface_down = commands_lib.interface_down
-interface_down.restype = c_int
-
-set_hw_addr = commands_lib.set_hw_addr
-set_hw_addr.restype = c_int
 
 set_event_callback = commands_lib.set_event_callback
 set_event_callback.restype = c_int
@@ -127,3 +128,10 @@ control_path_platform_init.restype = c_int
 
 reset_event_callback = commands_lib.reset_event_callback
 reset_event_callback.restype = c_int
+
+hosted_malloc = commands_lib.hosted_malloc
+hosted_malloc.restype = c_void_p
+
+get_event_callback = commands_lib.get_event_callback
+get_event_callback.restype = CTRL_CB
+get_event_callback.argtypes = [c_int]

@@ -1,38 +1,41 @@
 # Wi-Fi and BT/BLE connectivity Setup over SDIO
 
-| Supported Targets | ESP32 | ESP32-C6 |
-| ----------------- | ----- | -------- |
+| Supported Targets | ESP32 | ESP32-C6 | ESP32-C5 |
+| ----------------- | ----- | -------- | -------- |
+
+> [!NOTE]
+> SDIO support for ESP32-C5 is currently in BETA. It is available as a `--preview` release in the `master` branch of ESP-IDF.
 
 ## 1. Setup
 ### 1.1 Hardware Setup
-In this setup, ESP board acts as a SDIO peripheral and provides Wi-Fi capabilities to host. Please connect ESP board to Raspberry-Pi with jumper cables as mentioned below.
+In this setup, ESP board acts as a SDIO peripheral and provides Wi-Fi capabilities to host. Please connect ESP board to Raspberry-Pi as mentioned below.
 Raspberry Pi should be powered with correct incoming power rating.
 ESP can be powered through PC using micro-USB/USB-C cable.
 
-| Raspberry-Pi Pin | ESP32 Pin | ESP32-C6 Pin | Function |
-|:-------:|:---------:|:--------:|:--------:|
-| 13 | IO13+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO23+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT3 |
-| 15 | IO14 | IO19 | CLK |
-| 16 | IO15+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO18+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | CMD |
-| 18 | IO2+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO20+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT0 |
-| 22 | IO4+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO21+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT1 |
-| 31 | EN  | ESP Reset |
-| 37 | IO12+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO22+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT2 |
-| 39 | GND | GND | GND|
+| Raspberry-Pi Pin | ESP32 Pin | ESP32-C6 Pin | ESP32-C5 | Function |
+| :--------------: | :-------: | :----------: | :------: | :------: |
+| 13 | IO13+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO23+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO13+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | DAT3 |
+| 15 | IO14 | IO19 | IO9 | CLK |
+| 16 | IO15+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO18+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO10+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | CMD |
+| 18 | IO2+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO20+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO8+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT0 |
+| 22 | IO4+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html) | IO21+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO7+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT1 |
+| 31 | EN  | ESP Reset | ESP Reset | Reset |
+| 37 | IO12+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/sd_pullup_requirements.html)| IO22+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | IO14+[pull-up](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/peripherals/sd_pullup_requirements.html) | DAT2 |
+| 39 | GND | GND | GND | GND |
 
 Raspberry-Pi pinout can be found [here!](https://pinout.xyz/pinout/sdio)
 
-Sample setup image of ESP32 SDIO with RPi looks like:
+Sample setup image of ESP32-C6 SDIO with RPi looks like:
 
-![alt text](rpi_esp_sdio_setup.jpeg "setup of Raspberry-Pi as host and ESP32 as peripheral")
+![alt text](rpi_esp32c6_sdio_setup.png "setup of Raspberry-Pi as host and ESP32-C6 as peripheral")
 
-:warning: Note:
-As SDIO faces signal integrity issues over jumper wires, we strongly recommend to **Design PCB boards with above connections.**
-If that is not possible
- - Use good quality extremely small (smaller than 5cm) jumper wires, all equal length
- - Join all possible grounds interconnected to lower noise
- - Add at least, 10k Ohm external pull-up resistors on 5 lines: CMD, DAT0-4. We use 51k Ohm resistors in our set-up.
-
+> [!WARNING]
+> As SDIO faces signal integrity issues over jumper wires, we strongly recommend to **Design PCB boards with above connections.**
+>
+> If that is not possible
+> - Use good quality extremely small (smaller than 5cm) jumper wires, all equal length
+> - Join all possible grounds interconnected to lower noise
+> - Add at least, 10k Ohm external pull-up resistors on 5 lines: CMD, DAT0-4. We use 51k Ohm resistors in our set-up.
 
 ### 1.2 Raspberry-Pi Software Setup
 By default, the SDIO pins of Raspberry-pi are not configured and are internally used for the built-in Wi-Fi interface. Please enable SDIO pins by appending the following line to the _/boot/firmware/config.txt_ file (prior to _Bookworm_, the file is at _/boot/config.txt_):
@@ -48,12 +51,40 @@ Also, it is recommended to download (any) software needed (like iperf etc) befor
 
 ## 2. Load ESP-Hosted Solution
 ### 2.1 Host Software
-* Execute following commands in root directory of cloned ESP-Hosted repository on Raspberry-Pi
+* Execute following commands in root directory of cloned ESP-Hosted repository on Raspberry-Pi:
+
 ```sh
 $ cd esp_hosted_fg/host/linux/host_control/
-$ ./rpi_init.sh sdio
+$ ./rpi_init.sh wifi=sdio bt=sdio
 ```
+
 * This script compiles and loads host driver on Raspberry-Pi. It also creates virtual serial interface `/dev/esps0` which is used as a control interface for Wi-Fi on ESP peripheral
+
+Execute `./rpi_init.sh --help` to see the list of options.
+
+> [!NOTE]
+> For SDIO+UART, use `bt=uart_2pins` or `bt=uart_4pins` for 2/4 pin UART. For wifi only support, exclude the `bt` parameter.
+
+#### 2.1.1 Manually loading and unloading the Kernel Module
+
+Once built, the kernel module `esp32_sdio.ko` can be found in `esp_hosted_fg/host/linux/host_driver/esp32`. You can manualy load/unload the module as needed.
+
+To add the module:
+
+`$ sudo insmod esp_hosted_fg/host/linux/host_driver/esp32/esp32_sdio.ko resetpin=518 clockspeed=50`
+
+##### Module Parameters
+
+| Parameter | Meaning |
+| --- | --- |
+| `resetpin` | GPIO to reset the ESP peripheral |
+| `clockspeed` | SDIO CLK frequency (in MHz: maximum 50) |
+
+Note: `clockspeed` is optional. Default is to use the default SDIO clock speed.
+
+To remove the module:
+
+`$ sudo rmmod esp32_sdio`
 
 ### 2.2 ESP Peripheral Firmware
 One can load pre-built release binaries on ESP peripheral or compile those from source. Below subsection explains both these methods.
@@ -76,20 +107,18 @@ serial_port is device where ESP chipset is detected. For example, /dev/ttyUSB0
 Make sure that same code base (same git commit) is checked-out/copied at both, ESP and Host
 
 ##### Set-up ESP-IDF
-- **Note on Windows 11**: you can follow [these instructions](/esp_hosted_fg/esp/esp_driver/setup_windows11.md),
-instead of the following, to setup ESP-IDF and build the esp firmware.
-- :warning: Following command is dangerous. It will revert all your local changes. Stash if need to keep them.
-- Install the ESP-IDF using script
+- **Note on Windows 11**: follow [these instructions](/esp_hosted_fg/esp/esp_driver/setup_windows11.md) to setup ESP-IDF and build the esp firmware.
+- You can install the ESP-IDF using the `setup-idf.sh` script (run `./setup-idf.sh -h` for supported options):
 ```sh
 $ cd esp_hosted_fg/esp/esp_driver
-$ cmake .
+$ ./setup-idf.sh
 ```
-- Set-Up the build environment using
+- Once ESP-IDF has been installed, set-up the build environment using
 ```sh
 $ . ./esp-idf/export.sh
-# Optionally, You can add alias for this command in ~/.bashrc for later use
 ```
 
+To remove the ESP-IDF installed by `setup-idf.sh`, you can run the `./remove-idf.sh` script.
 
 ##### Configure, Build & Flash SDIO ESP firmware
 * Set slave chipset environment

@@ -104,7 +104,7 @@ class ctrl_cmd(object):
 		return self
 
 
-	def connect_ap(self, ssid : str = "", pwd : str = "", bssid : str = "", use_wpa3 : bool = False, listen_interval : int = 3, set_dhcp : bool = True, band_mode: int = WIFI_BAND_MODE_AUTO):
+	def connect_ap(self, ssid : str = "", pwd : str = "", bssid : str = "", use_wpa3 : bool = False, listen_interval : int = 3, band_mode: int = WIFI_BAND_MODE_AUTO):
 		"""Connect to AP (Wi-Fi router or hotspot)
 
 		Args:
@@ -113,7 +113,6 @@ class ctrl_cmd(object):
 			bssid(str, optional): O | MAC addr of AP (useful when multiple AP have same SSID) | Default: ''
 			use_wpa3(bool, optional): O | Use wpa3 security protocol | Default: False
 			listen_interval(int, optional) : O | Number of AP beacons station will sleep | Default:3
-			set_dhcp(bool, optional): O | Request DHCP | Default: True
 			band_mode(int, optional): O | Connect on 2.4G (1) or 5G (2) band, or Auto select (3) | Default:3
 
 		Returns:
@@ -124,7 +123,7 @@ class ctrl_cmd(object):
 			self.out = "Missing param " + "--ssid"
 			return self
 
-		self.out = process_connect_ap(ssid, pwd, bssid, use_wpa3, listen_interval, set_dhcp, band_mode)
+		self.out = process_connect_ap(ssid, pwd, bssid, use_wpa3, listen_interval, band_mode)
 		return self
 
 
@@ -246,7 +245,7 @@ class ctrl_cmd(object):
 		"""Set Wi-Fi power save
 
 		Args:
-			mode(str,optional): O | power save mode ['max','min'] | Default: 'max'
+			mode(str,optional): O | power save mode ['none','min','max'] | Default: 'max'
 
 		Returns:
 			ctrl_cmd: ctrl_cmd object
@@ -359,6 +358,42 @@ class ctrl_cmd(object):
 		self.out = process_get_fw_version()
 		return self
 
+	def set_country_code(self, country : str = "01 ", ieee80211d_enabled : bool = True):
+		"""Set Country Code
+
+		Sets the Wi-Fi Country Code
+
+		"country" is three octets, consisting of a two octet country code and a regulatory octet
+
+		Supported country codes are "01"(world safe mode) "AT","AU","BE","BG","BR", "CA","CH","CN","CY","CZ","DE","DK","EE","ES","FI","FR","GB","GR","HK","HR","HU", "IE","IN","IS","IT","JP","KR","LI","LT","LU","LV","MT","MX","NL","NO","NZ","PL","PT", "RO","SE","SI","SK","TW","US"
+
+		The third octet is one of the following:
+		- an ASCII space character, which means the regulations under which the station/AP is operating encompass all environments for the current frequency band in the country.
+		- an ASCII 'O' character, which means the regulations under which the station/AP is operating are for an outdoor environment only.
+		- an ASCII 'I' character, which means the regulations under which the station/AP is operating are for an indoor environment only.
+		- an ASCII 'X' character, which means the station/AP is operating under a noncountry entity. The first two octets of the noncountry entity is two ASCII 'XX' characters.
+
+		Args:
+			country (str, mandatory): M | Country Code to set
+			ieee80211d_enabled (bool, optional): O | Use Country Code of AP when station is connected | Default: True
+
+		Returns:
+			ctrl_cmd: ctrl_cmd object
+		"""
+		self.out = process_set_country_code(country, ieee80211d_enabled)
+		return self
+
+	def get_country_code(self):
+		"""Get Country Code
+
+		Args:
+			no_arg(str,optional): O | Dummy arg
+
+		Returns:
+			ctrl_cmd: ctrl_cmd object
+		"""
+		self.out = process_get_country_code()
+		return self
 
 	def ota_update(self, url : str = ""):
 		"""OTA update with HTTP link
@@ -396,7 +431,7 @@ class ctrl_cmd(object):
 		"""Subscribe event to get notifications
 
 		Args:
-			event(str,mandatory): M | Values ['esp_init' | 'heartbeat' | 'sta_connected_to_ap' | 'sta_disconnect_from_ap' | 'sta_connected_to_softap' | 'sta_disconnect_from_softap' | 'all' ]
+			event(str,mandatory): M | Values ['esp_init' | 'heartbeat' | 'sta_connected' | 'sta_disconnected' | 'softap_sta_connected' | 'softap_sta_disconnected' | 'dhcp_dns_status' | 'custom_packed_event' | 'all' ]
 
 		Returns:
 			ctrl_cmd: ctrl_cmd object
@@ -414,7 +449,7 @@ class ctrl_cmd(object):
 		"""Unsubscribe event to get notifications
 
 		Args:
-			event(str,mandatory): M | Values ['esp_init' | 'heartbeat' | 'sta_disconnect_from_ap' | 'sta_disconnect_from_softap' | 'all' ]
+			event(str,mandatory): M | Values ['esp_init' | 'heartbeat' | 'sta_connected' | 'sta_disconnected' | 'softap_sta_connected' | 'softap_sta_disconnected' | 'dhcp_dns_status' | 'custom_packed_event' | 'all' ]
 
 		Returns:
 			ctrl_cmd: ctrl_cmd object
@@ -426,3 +461,38 @@ class ctrl_cmd(object):
 
 		self.out = process_unsubscribe_event(event)
 		return self
+
+	def custom_rpc_demo1(self):
+		"""Send a custom RPC request with only acknowledgement (No echo back response)
+
+		This demo shows how to send a custom RPC request that expects only an acknowledgement.
+		No specific data is expected in response.
+
+		Returns:
+			success/failure: Result of the operation
+		"""
+		return process_custom_rpc_demo1()
+
+	def custom_rpc_demo2(self):
+		"""Send a custom RPC request and get echo back as response
+
+		This demo shows how to send a custom RPC request with data
+		and receive an echo back response. The response is verified to be
+		the same as the sent data.
+
+		Returns:
+			success/failure: Result of the operation
+		"""
+		return process_custom_rpc_demo2()
+
+	def custom_rpc_demo3(self):
+		"""Send a custom RPC request and get echo back as event
+
+		This demo shows how to send a custom RPC request with data
+		and receive an echo back as an event. The event data is verified
+		in the event handler.
+
+		Returns:
+			success/failure: Result of the operation
+		"""
+		return process_custom_rpc_demo3()

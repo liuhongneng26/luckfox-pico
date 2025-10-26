@@ -6,7 +6,7 @@
     + [1.3 Supported Hosts](#13-supported-hosts)
     + [1.4 Supported Transports](#14-supported-transports)
     + [1.5 Feature Matrix](#15-feature-matrix)
-- [2. Hardware and Software setup](#2-hardware-and-software-setup)
+- [2. Hardware and Software setup and OTA](#2-hardware-and-software-setup-and-ota)
 - [3. Get Started](#3-get-started)
   * [3.1 User Guide](#31-user-guide)
     + [3.1.1 Wi-Fi](#311-wi-fi)
@@ -14,20 +14,21 @@
         - [**Scanning**](#scanning)
         - [**Connect to AP**](#connect-to-ap)
         - [**Disconnect from AP**](#disconnect-from-ap)
-      - [**Interface as AP**](#access_point)
-        - [**Configuring AP with hostapd**](#configuring_ap_with_hostapd)
-        - [**Setting up DHCP and DNS**](#setting_up_dhcp_and_dns)
+      - [**Interface as AP**](#access-point)
+        - [**Configuring AP with hostapd**](#configuring-ap-with-hostapd)
+        - [**Setting up DHCP and DNS**](#setting-up-dhcp-and-dns)
     + [3.1.2 Bluetooth/BLE](#312-bluetoothble)
 - [4. Design](#4-design)
     + [4.1 System Architecture](#41-system-architecture)
     + [4.2 Transport Layer Protocol](#42-transport-layer-protocol)
     + [4.3 Porting Guide](#43-porting-guide)
 - [5. Throughput Performance ](#5-throughput-performance)
-- [6. Coming soon](#6-coming-soon)
-- [7. Want to support?](#7-want-to-support)
+- [6. Miscellaneous](#6-miscellaneous)
+    + [6.1 Deassert CS for SPI](#61-deassert-cs-for-spi)
+- [7. Coming soon](#7-coming-soon)
+- [8. Want to support?](#8-want-to-support)
 
 ---
-
 
 
 # 1. Introduction
@@ -39,7 +40,6 @@ This solution offers following:
 * 802.11 network interface which is a standard Wi-Fi interface on Linux host
 * Configuration of Wi-Fi is supported through standard cfg80211 interface of Linux
 * A standard HCI interface 
-
 
 
 ### 1.1 Connectivity Features
@@ -55,14 +55,15 @@ This solution provides following WLAN and BT/BLE features to the host:
   - BLE 5.0
 
 
-
 ### 1.2 Supported ESP boards
 
 ESP-Hosted-NG solution is supported on following ESP boards:
 
-| Supported Targets | ESP32 | ESP32-S2 | ESP32-S3 | ESP32-C2 | ESP32-C3 | ESP32-C6 |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | -------- |
+| Supported Targets | ESP32 | ESP32-S2 | ESP32-S3 | ESP32-C2 | ESP32-C3 | ESP32-C6 | ESP32-C5 |
+| ----------------- | ----- | -------- | -------- | -------- | -------- | -------- | -------- |
 
+
+:warning: Note:
 Looking for other chipset? Please do check [Coming Soon](#5-coming-soon) section.
 
 
@@ -75,7 +76,7 @@ Looking for other chipset? Please do check [Coming Soon](#5-coming-soon) section
   - Raspberry-Pi 4 Model B
 - This solution is aimed for Linux based hosts only. For microcontroller(MCU) based hosts (like STM32 etc), [ESP-Hosted-FG](../esp_hosted_fg) flavour should be used.
 - Although we try to help in porting, We expect users to get the transport interfaces like SDIO/SPI/UART configured on your Linux platform. Device tree configuration and device drivers could be some times tricky as every Linux platform has it different.
-- It is relatively easy to port this solution to other Linux based platforms. Please refer [Porting Guide](docs/porting_guide.md) for the common steps.
+- It is relatively easy to port this solution to other Linux based platforms. Please refer [Porting Guide](docs/porting_guide.md) for the common steps. 
 
 
 
@@ -211,6 +212,32 @@ The below table explains which feature is supported on which transport interface
       <td style="text-align:center;">&#10003;</td>
       <td style="text-align:center;">&#10003;</td>
     </tr>
+    <tr>
+      <td rowspan="5" style="text-align:center;">ESP32-C5</td>
+      <td style="text-align:center;">SPI</td>
+      <td style="text-align:center;">&#10003;</td>
+      <td style="text-align:center;">&#10003;</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">UART</td>
+      <td style="text-align:center;">&#10005;</td>
+      <td style="text-align:center;">&#10003;</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">SPI(WiFi) + UART(BT)</td>
+      <td style="text-align:center;">&#10003;</td>
+      <td style="text-align:center;">&#10003;</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">SDIO</td>
+      <td style="text-align:center;">&#10003;</td>
+      <td style="text-align:center;">&#10003;</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">SDIO(WiFi) + UART(BT)</td>
+      <td style="text-align:center;">&#10003;</td>
+      <td style="text-align:center;">&#10003;</td>
+    </tr>
   </tbody>
 </table>
 
@@ -222,9 +249,9 @@ Apart from these features, following features are supported.
 ---
 
 
-# 2. Hardware and Software setup
+# 2. Hardware and Software setup and OTA
 This section describes how to set up and use ESP-Hosted-NG solution.
-Please check [Hardware and Software Setup](docs/setup.md).
+Please check [Hardware and Software setup and OTA](docs/setup.md).
 
 ---
 
@@ -329,7 +356,7 @@ Following operations for station are supported as of now:
 > ```sh
 > $ ping <ip address of AP>
 > ```
-</p></details>
+></p></details>
 <details><summary>WPA/WPA2</summary>
 <p>
 
@@ -408,7 +435,7 @@ Following operations for station are supported as of now:
 > ```sh
 > $ ping <ip address of AP>
 > ```
-</p></details>
+></p></details>
 <details><summary>WPA3</summary>
 <p>
 
@@ -479,7 +506,7 @@ Following operations for station are supported as of now:
 > ```sh
 > $ ping <ip address of AP>
 > ```
-</p></details>
+></p></details>
 
 
 #### Disconnect from AP
@@ -499,7 +526,7 @@ Following operations for station are supported as of now:
 
 hostapd (Host Access Point Daemon) is a user-space daemon that enables a Linux-based machine to act as a wireless access point. When combined with dnsmasq, a lightweight DHCP and DNS server, it provides a complete solution for managing Wi-Fi networks, including IP address assignment and name resolution.
 
-> make sure you have enabled `ap_support` with rpi_init.sh to user interface as Acess point. Read [Hardware and Software Setup](docs/setup.md)
+> make sure you have enabled `ap_support` with rpi_init.sh to user interface as Acess point. Read [Hardware and Software Setup and OTA](docs/setup.md)
 
 Supported Operations
 
@@ -525,11 +552,30 @@ macaddr_acl=0
 auth_algs=1
 ignore_broadcast_ssid=0
 wpa=2
-wpa_key_mgmt=SAE
+wpa_key_mgmt=WPA-PSK SAE
 wpa_passphrase=MY_PASSPHRASE
 rsn_pairwise=CCMP
+sae_pwe=2
 ieee80211w=2
 ``` 
+Sample Configuration for AP on 5GHZ channel (ESP32C5)
+```sh
+interface=wlan0
+driver=nl80211
+ssid=MY_SSID
+hw_mode=a
+channel=36
+wmm_enabled=0
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_key_mgmt=WPA-PSK SAE
+wpa_passphrase=MY_PASSPHRASE
+rsn_pairwise=CCMP
+sae_pwe=2
+ieee80211w=2
+```
 >  Change `MY_SSID` to AP's SSID and `MY_PASSPHRASE` to Passphrase to connect
 > Security can configured by keeping the values of `wpa_key_mgmt` to `SAE/WPA-PSK`.
 ###### Start hostapd
@@ -716,28 +762,80 @@ Refer [RAW throughput guide](docs/Raw_TP_Testing.md) for verifying connection as
 <td align="center">7.32 Mbps</td>
 </tr>
 <tr>
-<td rowspan=2 align="center">ESP32-C3</td>
+<td rowspan=1 align="center">ESP32-C3</td>
 <td rowspan=1 align="center">SPI</td>
 <td align="center">15.8 Mbps</td>
 <td align="center">15.2 Mbps</td>
 <td align="center">17.1 Mbps</td>
 <td align="center">14.9 Mbps</td>
 </tr>
+<tr>
+<td rowspan=2 align="center">ESP32-C5</td>
+<td rowspan=1 align="center">SDIO 2.4 ghz</td>
+<td align="center">11.2 Mbps</td>
+<td align="center">19.4 Mbps</td>
+<td align="center">37.8 Mbps</td>
+<td align="center">25.9 Mbps</td>
+</tr>
+<tr>
+<td align="center">SDIO 5 ghz</td>
+<td align="center">19.7 Mbps</td>
+<td align="center">18.4 Mbps</td>
+<td align="center">53.5 Mbps</td>
+<td align="center">30.4 Mbps</td>
+</tr>
 </tbody>
 </table>
 
 ---
 
-# 6. Coming soon
+# 6. Miscellaneous
+
+## 6.1 Deassert CS for SPI
+
+**Problem:** Some hosts, after completing an SPI transaction, introduce a delay before de-asserting the Chip Select (CS) line. The ESP SPI slave, seeing that the CS is still asserted, might start the next transaction prematurely, leading to data loss or corruption because the host is not ready.
+
+**Solution:** To address this, the ESP firmware provides a Kconfig option, `ESP_SPI_DEASSERT_HS_ON_CS`. When this option is enabled, the firmware changes its behavior. Instead of de-asserting the Handshake (HS) signal at the end of a transaction, it waits for the CS line to be de-asserted by the host. This ensures that a new transaction doesn't start until the host has properly finished the previous one.
+
+**How to Enable:**
+
+You can enable this option using the `idf.py menuconfig` tool within the `esp_hosted_ng` project.
+
+1.  Navigate to the ESP firmware directory:
+    ```sh
+    cd esp_hosted_ng/esp/esp_driver/network_adapter
+    ```
+
+2.  Launch the configuration menu:
+    ```sh
+    idf.py menuconfig
+    ```
+
+3.  In the menu, navigate to the following path:
+    `Example Configuration` -> `SPI Configuration`
+
+4.  Inside the `SPI Configuration` menu, you will find the option `De-assert HS on CS`.
+
+5.  Select this option to enable it (set it to `true`).
+
+6.  Save the configuration and exit `menuconfig`.
+
+7.  Rebuild the firmware for the changes to take effect.
+
+This option is defined in the Kconfig file located at `main/Kconfig.projbuild` within the `network_adapter` directory.
+
+---
+
+# 7. Coming soon
 
 Tremendous work to be done ahead! Below is glimpse of upcoming release:
 
 ---
 
 - Functionality
-	- esp32c5 support
+	- esp32c61 support
 
 ---
 
-# 7. Want to support?
+# 8. Want to support?
 That's right. Being open source, we really appreciate the pull requests. Already raised pull request? Please be patient. We will review and merge your commit into the master.

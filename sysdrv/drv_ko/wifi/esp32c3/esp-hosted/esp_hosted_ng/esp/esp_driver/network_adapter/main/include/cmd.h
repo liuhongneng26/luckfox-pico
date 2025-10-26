@@ -57,6 +57,9 @@ int process_set_ap_config(uint8_t if_type, uint8_t *payload, uint16_t payload_le
 int process_mgmt_tx(uint8_t if_type, uint8_t *payload, uint16_t payload_len);
 int process_ap_station(uint8_t if_type, uint8_t *payload, uint16_t payload_len);
 int process_rssi(uint8_t if_type, uint8_t *payload, uint16_t payload_len);
+int process_ota_start(uint8_t if_type, uint8_t *payload, uint16_t payload_len);
+int process_ota_write(uint8_t if_type, uint8_t *payload, uint16_t payload_len);
+int process_ota_end(uint8_t if_type, uint8_t *payload, uint16_t payload_len);
 
 esp_err_t initialise_wifi(void);
 
@@ -64,16 +67,16 @@ void esp_create_wifi_event_loop(void);
 
 inline esp_err_t send_command_response(interface_buffer_handle_t *buf_handle)
 {
-	return send_to_host(PRIO_Q_HIGH, buf_handle);
+    return send_to_host(PRIO_Q_HIGH, buf_handle);
 }
 
 inline esp_err_t send_command_event(interface_buffer_handle_t *buf_handle)
 {
-	return send_to_host(PRIO_Q_HIGH, buf_handle);
+    return send_to_host(PRIO_Q_HIGH, buf_handle);
 }
 
 inline esp_err_t send_frame_to_host(interface_buffer_handle_t *buf_handle)
 {
-	return send_to_host(PRIO_Q_HIGH, buf_handle);
+    return send_to_host(PRIO_Q_HIGH, buf_handle);
 }
 #endif

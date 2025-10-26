@@ -2,18 +2,14 @@ menu "Example Configuration"
 
     choice ESP_HOST_INTERFACE
         bool "Transport layer"
-        default ESP_SDIO_HOST_INTERFACE if IDF_TARGET_ESP32
-        default ESP_SPI_HOST_INTERFACE if IDF_TARGET_ESP32S2
-        default ESP_SPI_HOST_INTERFACE if IDF_TARGET_ESP32S3
-        default ESP_SPI_HOST_INTERFACE if IDF_TARGET_ESP32C2
-        default ESP_SPI_HOST_INTERFACE if IDF_TARGET_ESP32C3
-        default ESP_SDIO_HOST_INTERFACE if IDF_TARGET_ESP32C6
+        default ESP_SDIO_HOST_INTERFACE if SOC_SDIO_SLAVE_SUPPORTED
+        default ESP_SPI_HOST_INTERFACE
         help
             Bus interface to be used for communication with the host
 
         config ESP_SDIO_HOST_INTERFACE
             bool "SDIO interface"
-            depends on IDF_TARGET_ESP32 || IDF_TARGET_ESP32C6
+            depends on SOC_SDIO_SLAVE_SUPPORTED
             help
                 Enable/Disable SDIO host interface
 
@@ -39,6 +35,7 @@ menu "Example Configuration"
         default 3 if IDF_TARGET_ESP32C2
         default 3 if IDF_TARGET_ESP32C3
         default 3 if IDF_TARGET_ESP32C6
+        default 3 if IDF_TARGET_ESP32C5
         default 2
         help
             GPIO pin to use for handshake with other spi controller
@@ -68,6 +65,13 @@ menu "Example Configuration"
         default y
         help
             ENABLE/DISABLE software SPI checksum
+
+    config ESP_SPI_DEASSERT_HS_ON_CS
+        bool "De-assert HS on CS"
+        default n
+        help
+            De-assert HS signal on CS, instead of at end of transaction.
+            This is useful for some hosts that have a delay in de-asserting CS.
     endmenu
 
     menu "SDIO Configuration"
@@ -86,6 +90,7 @@ menu "Example Configuration"
         depends on ESP_SDIO_HOST_INTERFACE
         default 22 if IDF_TARGET_ESP32
         default 4 if IDF_TARGET_ESP32C6
+        default 5 if IDF_TARGET_ESP32C5
         help
             GPIO pin used to wake-up host
 
@@ -98,7 +103,7 @@ menu "Example Configuration"
             support for that extra signal. GPIO pin number can be configured using SDIO_CD_PIN_GPIO.
 
     config SDIO_CD_PIN_GPIO
-        int "CD Pin GPIO "
+        int "CD Pin GPIO"
         depends on ESP_SDIO_HOST_INTERFACE
         depends on SDIO_CARD_DETECTION_PIN_SUPPORT
         default 6

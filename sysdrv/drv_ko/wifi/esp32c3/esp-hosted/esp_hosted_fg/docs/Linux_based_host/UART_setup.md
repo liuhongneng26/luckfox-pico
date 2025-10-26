@@ -1,9 +1,11 @@
 # Bluetooth/BLE connectivity Setup over UART
 
-| Supported Chipsets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-S3 | ESP32-C6 |
-| ------------------ | ----- | -------- | -------- | -------- | -------- |
-| 4 line UART supported | yes | no | yes | yes | no |
-| 2 line UART supported | yes | yes | yes | yes | yes |
+| Supported Chipsets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-S3 | ESP32-C6 | ESP32-C5 | ESP32-S2 |
+| ------------------ | :---: | :------: | :------: | :------: | :------: | :------: | :------: |
+| 4 line UART        | T     | NT        | T        | T        | NT        | NT        | T        |
+| 2 line UART        | NT     | T        | NT        | NT        | T        | T        | NT        |
+
+T - **Tested**, NT - **Not Tested**
 
 In this section, ESP chipset provides a way to run Bluetooth/BLE over UART interface.
 Please connect ESP peripheral to Raspberry-Pi with jumper cables (preferably PCB) as mentioned below.
@@ -26,6 +28,12 @@ Raspberry-Pi pinout can be found [here!](https://pinout.xyz/pinout/uart)
 
 #### Four Line UART setup
 
+> [!NOTE]
+>
+> For UART protocol
+> - Host TX is to be connected to slave RX & vice versa.
+> - Host CTS is to be connected to slave RTS & vice versa.
+
 | Raspberry-Pi Pin Function | Raspberry-Pi Pin | ESP32 | ESP32-S3 | ESP32-C3 | ESP32 Pin Function |
 |:-------:|:--------:|:---------:|:--------:|:--------:|:--------:|
 | RX | 10 | IO5 | IO17 | IO5 | TX |
@@ -39,15 +47,21 @@ Sample SPI+UART setup image looks like:
 
 #### Two Line UART setup
 
+> [!NOTE]
+>
+> For UART protocol, Host TX is connected to slave RX & vice versa.
 
-| Raspberry-Pi Pin Function | Raspberry-Pi Pin | ESP32-C2 | ESP32-C6 | ESP Function |
-|:-------:|:--------:|:---------:|:--------:|:--------:|
-| RX | 10 | IO5 | IO5 | TX |
-| TX | 8 | IO18 | IO12 | RX |
+| Raspberry-Pi Pin Function | Raspberry-Pi Pin | ESP32-C2 | ESP32-C5 | ESP32-C6 | ESP Function |
+|:-------:|:--------:|:---------:|:--------:|:--------:|:--------:|
+| RX | 10 | IO5  | IO5  | IO5  | TX |
+| TX | 8 | IO1 | IO23 | IO12 | RX |
 
-Note:
-- ESP32-C2 only
-	- Although, `HCI with UART` is supported on `ESP32-C2`, `Wi-Fi + Bluetooth` (together) when used with `SPI+UART` setup, Bluetooth on UART works fine but Wi-Fi on SPI faces low throughput problem. By the time this is rectified, please use 'SPI only' i.e. `HCI over SPI` and `Wi-Fi over SPI` transport combination. In `SPI only` setup, there is no such limitation.
+> [ !CAUTION ]
+> - ESP32-C2 only
+>	- ESP32-C2 has much less IRAM, without PSRAM support.
+>	- With `SPI+UART` mode, i.e. Wi-Fi on SPI & BLE over UART mode, Wi-Fi on SPI faces low throughput problem when uart is loaded.
+>	- With `SPI only` mode, i.e. Wi-Fi & BLE, both, running over SPI, both, Wi-Fi and Bluetooth work smooth.
+>	- Conclusion, For `ESP32-C2`, prefer using `SPI only` mode.
 
 
 ### 1.2 Raspberry-Pi Software Setup
@@ -113,19 +127,18 @@ Make sure that same code base (same git commit) is checked-out/copied at both, E
 
 ##### Set-up ESP-IDF
 - :warning: Omit this & move to `Configure, Build & Flash ESP firmware` step if IDF is already setup while SPI/SDIO setup
-- **Note on Windows 11**: you can follow [these instructions](/esp_hosted_fg/esp/esp_driver/setup_windows11.md),
-instead of the following, to setup ESP-IDF and build the esp firmware.
-- :warning: Following command is dangerous. It will revert all your local changes. Stash if need to keep them.
-- Install the ESP-IDF using script
+- **Note on Windows 11**: follow [these instructions](/esp_hosted_fg/esp/esp_driver/setup_windows11.md) to setup ESP-IDF and build the esp firmware.
+- You can install the ESP-IDF using the `setup-idf.sh` script (run `./setup-idf.sh -h` for supported options):
 ```sh
 $ cd esp_hosted_fg/esp/esp_driver
-$ cmake .
+$ ./setup-idf.sh
 ```
-- Set-Up the build environment using
+- Once ESP-IDF has been installed, set-up the build environment using
 ```sh
 $ . ./esp-idf/export.sh
-# Optionally, You can add alias for this command in ~/.bashrc for later use
 ```
+
+To remove the ESP-IDF installed by `setup-idf.sh`, you can run the `./remove-idf.sh` script.
 
 ##### Configure, Build & Flash ESP firmware
 - Set slave chipset environment
@@ -151,7 +164,7 @@ $ idf.py menuconfig
 - Set Bluetooth over UART
 	- ESP32 / ESP32-C3/S3
 		- navigate to `Component config -> Bluetooth -> Bluetooth controller -> HCI mode`, select `UART(H4)`
-	- ESP32-C2/C6
+	- ESP32-C2/C5/C6
 		- Navigate to `Component config -> Bluetooth -> Bluetooth -> Controller`, select `Enabled` (Should be enabled by default)
 		- Navigate to `Component config -> Bluetooth -> Controller Options -> HCI Config -> Select HCI interface`, select `uart`
 		- Navigate to `Component config > Bluetooth > Controller Options > HCI Config`
@@ -159,6 +172,9 @@ $ idf.py menuconfig
 		- ESP32-C2
           - Change `HCI uart Tx gpio` to `5`
           - Change `HCI uart Rx gpio` to `18`
+		- ESP32-C2
+          - Change `HCI uart Tx gpio` to `5`
+          - Change `HCI uart Rx gpio` to `23`
 		- ESP32-C6
           - Change `HCI uart Tx gpio` to `5`
           - Change `HCI uart Rx gpio` to `12`

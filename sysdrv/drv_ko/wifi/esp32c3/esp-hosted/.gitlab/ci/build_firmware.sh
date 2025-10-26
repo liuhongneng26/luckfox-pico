@@ -8,22 +8,8 @@ TGT_NAME=$1
 # Navigate to the target directory
 cd esp_hosted_ng/esp/esp_driver/
 
-echo "ESP hosted: initializing submodule esp-idf"
-git submodule update --init --depth=1
-
-echo "ESP hosted: initializing submodule for esp-idf"
-cd esp-idf
-git submodule update --init --depth=1
-
-echo "ESP hosted: installing prerequisites for $TGT_NAME"
-./install.sh $TGT_NAME
-cd ..
-
-echo "ESP hosted: replacing wireless libraries"
-rm -rf esp-idf/components/esp_wifi/lib/*
-cp -r lib/* esp-idf/components/esp_wifi/lib/
-
-echo "###### Setup Done ######"
+# Setup IDF and required libraries
+yes | ./setup.sh -f
 
 cd esp-idf
 echo "Exporting variables"
@@ -45,7 +31,11 @@ if [ "$2" = "spi" ]; then
 fi
 
 echo "Setting target as $TGT_NAME"
-idf.py set-target $TGT_NAME
+if [ "$TGT_NAME" = "esp32c5" ]; then
+    idf.py --preview set-target "$TGT_NAME"
+else
+    idf.py set-target "$TGT_NAME"
+fi
 idf.py build
 
 # Check if the build was successful

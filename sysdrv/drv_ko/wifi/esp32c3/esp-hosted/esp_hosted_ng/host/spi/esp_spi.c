@@ -170,6 +170,7 @@ int esp_validate_chipset(struct esp_adapter *adapter, u8 chipset)
 	case ESP_FIRMWARE_CHIP_ESP32C2:
 	case ESP_FIRMWARE_CHIP_ESP32C3:
 	case ESP_FIRMWARE_CHIP_ESP32C6:
+	case ESP_FIRMWARE_CHIP_ESP32C5:
 		adapter->chipset = chipset;
 		esp_info("Chipset=%s ID=%02x detected over SPI\n", esp_chipname_from_id(chipset), chipset);
 		break;
@@ -393,7 +394,11 @@ static struct spi_controller *spi_busnum_to_master(u16 bus_num)
 	pdev->num_resources = 0;
 	platform_device_add(pdev);
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 91))
+	master = spi_alloc_host(&pdev->dev, sizeof(void *));
+#else
 	master = spi_alloc_master(&pdev->dev, sizeof(void *));
+#endif
 	if (!master) {
 		pr_err("Error: failed to allocate SPI master device\n");
 		platform_device_del(pdev);
@@ -449,9 +454,12 @@ static int spi_dev_init(int spi_clk_mhz)
 		return status;
 	}
 
-	esp_info("ESP32 peripheral is registered to SPI bus [%d],chip select [%d], SPI Clock [%d]\n",
-			esp_board.bus_num,
-			esp_board.chip_select, spi_clk_mhz);
+	esp_info("Config - SPI GPIOs: Handshake[%d] Dataready[%d]\n",
+		HANDSHAKE_PIN, SPI_DATA_READY_PIN);
+
+	esp_info("Config - SPI clock[%dMHz] bus[%d] cs[%d] mode[%d]\n",
+		spi_context.spi_clk_mhz, esp_board.bus_num,
+		esp_board.chip_select, esp_board.mode);
 
 	set_bit(ESP_SPI_BUS_SET, &spi_context.spi_flags);
 

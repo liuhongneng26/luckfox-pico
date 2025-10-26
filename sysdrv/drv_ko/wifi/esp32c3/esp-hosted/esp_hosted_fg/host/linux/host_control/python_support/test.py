@@ -25,6 +25,11 @@ if sys.version_info[0] < 3:
 	print("please re-run using python3")
 	raise SystemExit('Exit')
 
+### reconfigure stdout to use utf-8 encoding
+### this is to prevent decoding errors when printing Unicode characters in SSIDs
+### Note: the console may not be handle the Unicode character to be displayed
+sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
+
 import inspect
 import argparse
 import fire
@@ -168,12 +173,6 @@ def main():
 	global possible_options
 
 	process_init_control_lib()
-
-	# Display FW Version
-	print("------- ESP-Hosted slave FW [", end='')
-	cmd = ctrl_cmd()
-	cmd.get_fw_version()
-	print("] --------")
 
 	argumentList = sys.argv[1:]
 	if argumentList and len(argumentList):
