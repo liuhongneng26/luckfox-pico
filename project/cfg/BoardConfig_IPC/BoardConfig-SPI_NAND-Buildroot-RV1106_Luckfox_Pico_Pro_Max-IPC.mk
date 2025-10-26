@@ -11,7 +11,7 @@ export RK_CHIP=rv1106
 export RK_APP_TYPE=RKIPC_RV1106
 
 # Config CMA size in environment
-export RK_BOOTARGS_CMA_SIZE="66M"
+export RK_BOOTARGS_CMA_SIZE="96M"
 
 # Kernel dts
 export RK_KERNEL_DTS=rv1106g-luckfox-pico-pro-max.dts
@@ -104,11 +104,11 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 export RK_ENABLE_ROCKCHIP_TEST=y
 
 # enable rockchip wifi
-export RK_ENABLE_WIFI=y
+# export RK_ENABLE_WIFI=y
 
-# config wifi ssid and passwd
-export LF_WIFI_SSID="Your wifi ssid"
-export LF_WIFI_PSK="Your wifi password"
+# # config wifi ssid and passwd
+# export LF_WIFI_SSID="Your wifi ssid"
+# export LF_WIFI_PSK="Your wifi password"
 
 #################################################
 # 	PRE and POST
