@@ -23,7 +23,7 @@
 #include "esp_cfg80211.h"
 #include "esp_stats.h"
 
-#define HOST_GPIO_PIN_INVALID -1
+#define HOST_GPIO_PIN_INVALID 4
 #define CONFIG_ALLOW_MULTICAST_WAKEUP 1
 
 #define STRINGIFY_HELPER(x) #x
@@ -357,7 +357,7 @@ static int process_event_esp_bootup(struct esp_adapter *adapter, u8 *evt_buf, u8
 
 	if (ota_file && strlen(ota_file) != 0) {
 		esp_info("OTA update requested: bin(%s)\n", ota_file);
-		esp_start_ota(adapter, ota_file);
+		// esp_start_ota(adapter, ota_file);
 		ota_file = NULL;
 		return 0;
 	}
@@ -502,64 +502,64 @@ static int esp_add_network_ifaces(struct esp_adapter *adapter)
 	return -1;
 }
 
-int esp_start_ota(struct esp_adapter *adapter, char *ota_file)
-{
-	struct file *file;
-	ssize_t nread;
-	int ret = 0;
-	char *ota_chunk = kmalloc(OTA_CHUNK_SIZE, GFP_KERNEL);;
+// int esp_start_ota(struct esp_adapter *adapter, char *ota_file)
+// {
+// 	struct file *file;
+// 	ssize_t nread;
+// 	int ret = 0;
+// 	char *ota_chunk = kmalloc(OTA_CHUNK_SIZE, GFP_KERNEL);;
 
-	if (!ota_chunk) {
-		esp_err("Failed to allocate buffer for ota_chunk\n");
-		return -ENOMEM;
-	}
+// 	if (!ota_chunk) {
+// 		esp_err("Failed to allocate buffer for ota_chunk\n");
+// 		return -ENOMEM;
+// 	}
 
-	memset(ota_chunk, 0, OTA_CHUNK_SIZE);
+// 	memset(ota_chunk, 0, OTA_CHUNK_SIZE);
 
-	file = filp_open(ota_file, O_RDONLY, 0);
+// 	file = filp_open(ota_file, O_RDONLY, 0);
 
-	if (IS_ERR(file)) {
-		esp_err("Error reading ota bin, or ota bin not found at %s \n", ota_file);
-		kfree(ota_chunk);
-		return -EINVAL;
-	}
+// 	if (IS_ERR(file)) {
+// 		esp_err("Error reading ota bin, or ota bin not found at %s \n", ota_file);
+// 		kfree(ota_chunk);
+// 		return -EINVAL;
+// 	}
 
-	set_bit(ESP_OTA_IN_PROGRESS, &adapter->state_flags);
-	if (cmd_process_ota_start(adapter->priv[ESP_STA_NW_IF]) != 0) {
-		esp_err("OTA Start failed\n");
-		ret = EINVAL;
-		goto done;
-	}
+// 	set_bit(ESP_OTA_IN_PROGRESS, &adapter->state_flags);
+// 	if (cmd_process_ota_start(adapter->priv[ESP_STA_NW_IF]) != 0) {
+// 		esp_err("OTA Start failed\n");
+// 		ret = EINVAL;
+// 		goto done;
+// 	}
 
-	while ((nread = kernel_read(file, ota_chunk, OTA_CHUNK_SIZE, &file->f_pos)) > 0) {
-		if (cmd_process_ota_write(adapter->priv[ESP_STA_NW_IF], ota_chunk, nread) !=0) {
-			esp_err("OTA Write failed\n");
-			ret = EINVAL;
-			goto done;
-		}
-		if (nread < OTA_CHUNK_SIZE) {
-			break;
-		}
-	}
+// 	while ((nread = kernel_read(file, ota_chunk, OTA_CHUNK_SIZE, &file->f_pos)) > 0) {
+// 		if (cmd_process_ota_write(adapter->priv[ESP_STA_NW_IF], ota_chunk, nread) !=0) {
+// 			esp_err("OTA Write failed\n");
+// 			ret = EINVAL;
+// 			goto done;
+// 		}
+// 		if (nread < OTA_CHUNK_SIZE) {
+// 			break;
+// 		}
+// 	}
 
-	if (nread < 0) {
-		esp_err("Failed to read ota binary file %s \n", ota_file);
-		ret = EINVAL;
-		goto done;
-	}
+// 	if (nread < 0) {
+// 		esp_err("Failed to read ota binary file %s \n", ota_file);
+// 		ret = EINVAL;
+// 		goto done;
+// 	}
 
 
-	ret = cmd_process_ota_end(adapter->priv[ESP_STA_NW_IF]);
-	if (ret != 0) {
-		esp_err("cmd_process_ota_end failed %d \n", ret);
-	}
+// 	ret = cmd_process_ota_end(adapter->priv[ESP_STA_NW_IF]);
+// 	if (ret != 0) {
+// 		esp_err("cmd_process_ota_end failed %d \n", ret);
+// 	}
 
-done:
-	kfree(ota_chunk);
-	filp_close(file, NULL);
-	clear_bit(ESP_OTA_IN_PROGRESS, &adapter->state_flags);
-	return ret;
-}
+// done:
+// 	kfree(ota_chunk);
+// 	filp_close(file, NULL);
+// 	clear_bit(ESP_OTA_IN_PROGRESS, &adapter->state_flags);
+// 	return ret;
+// }
 
 int esp_init_raw_tp(struct esp_adapter *adapter)
 {
