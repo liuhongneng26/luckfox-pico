@@ -212,45 +212,6 @@ def remove_dns(iface):
     except Exception:
         return FAILURE
 
-def update_host_network_port_range(port_start, port_end):
-    try:
-        found = False
-        lines = []
-        with open("/etc/sysctl.conf", "r") as f:
-            for line in f:
-                if "net.ipv4.ip_local_port_range" in line:
-                    found = True
-                    lines.append(f"net.ipv4.ip_local_port_range = {port_start} {port_end}\n")
-                else:
-                    lines.append(line)
-        if not found:
-            lines.append(f"net.ipv4.ip_local_port_range = {port_start} {port_end}\n")
-        with open("/etc/sysctl.conf", "w") as f:
-            f.writelines(lines)
-        os.system("sysctl -p")
-        return SUCCESS
-    except Exception:
-        return FAILURE
-
-
-def clear_host_network_port_range():
-    try:
-        found = False
-        lines = []
-        with open("/etc/sysctl.conf", "r") as f:
-            for line in f:
-                if "net.ipv4.ip_local_port_range" in line:
-                    found = True
-                else:
-                    lines.append(line)
-        if found:
-            with open("/etc/sysctl.conf", "w") as f:
-                f.writelines(lines)
-            os.system("sysctl -p")
-        return SUCCESS
-    except Exception:
-        return FAILURE
-
 
 def up_sta_netdev__with_static_ip_dns_route(static_ip, netmask, gateway, dns):
     g_sta_network_info.ip_addr = static_ip

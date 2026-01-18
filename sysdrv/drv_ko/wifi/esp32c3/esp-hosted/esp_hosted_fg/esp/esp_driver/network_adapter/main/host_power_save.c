@@ -23,7 +23,7 @@ static char *TAG = "host_ps";
   uint8_t power_save_on;
   #define GPIO_HOST_WAKEUP (CONFIG_HOST_WAKEUP_GPIO)
 
-  /* Assuming wakup gpio neg 'level' interrupt */
+  /* Assuming wake-up gpio neg 'level' interrupt */
   #define set_host_wakeup_gpio() gpio_set_level(GPIO_HOST_WAKEUP, 1)
   #define reset_host_wakeup_gpio() gpio_set_level(GPIO_HOST_WAKEUP, 0)
 
@@ -85,14 +85,10 @@ int is_host_wakeup_needed(interface_buffer_handle_t *buf_handle)
 			break;
 
 		case ESP_STA_IF:
-
-			/* TODO: parse packet if lwip split not configured.
-			 * Decide if packets need to reach to host or not
-			 **/
-			strlcpy(reason, "sta tx msg", sizeof(reason));
-			wakup_needed = 1;
-			goto end;
-			break;
+			  strlcpy(reason, "sta tx msg", sizeof(reason));
+			  wakup_needed = 1;
+			  goto end;
+			  break;
 
 		case ESP_AP_IF:
 			strlcpy(reason, "ap tx msg", sizeof(reason));

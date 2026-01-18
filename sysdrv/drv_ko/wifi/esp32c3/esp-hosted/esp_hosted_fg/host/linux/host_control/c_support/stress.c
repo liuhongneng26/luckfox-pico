@@ -83,7 +83,6 @@ int main(int argc, char *argv[])
 		str_args_start = 1;
 	}
 
-	test_is_network_split_on();
 	register_event_callbacks();
 	test_config_heartbeat();
 

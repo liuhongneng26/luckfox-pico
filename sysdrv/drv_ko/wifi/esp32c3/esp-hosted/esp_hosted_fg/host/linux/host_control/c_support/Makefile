@@ -11,8 +11,29 @@ CROSS_COMPILE :=
 CFLAGS = -Wall -g
 LINKER = -lpthread -lrt
 
-# Enable only when memory check (like valgrind) need to perform. This slows down the application and cleanup
-#CFLAGS_SANITIZE = -fsanitize=undefined -fsanitize-address-use-after-scope -fsanitize-undefined-trap-on-error -fstack-protector-all -fstack-check -fsanitize=address -fsanitize=pointer-compare -fno-omit-frame-pointer -static-libasan
+# Library search path for replxx - can be customized:
+#   Default:              make
+#   Custom path:          make REPLXX_LIB_PATH=/custom/path
+#   Multiple paths:       make REPLXX_LIB_PATH=/path1:/path2
+#   Disable RPATH:        make RPATH_FLAGS=
+REPLXX_LIB_PATH ?= /usr/local/lib
+RPATH_FLAGS = -Wl,-rpath,$(REPLXX_LIB_PATH)
+
+# Sanitizer options - can be customized:
+#   Basic (default):      make SANITIZE=basic
+#   Full debugging:       make SANITIZE=full
+#   Disabled:             make SANITIZE=none
+SANITIZE ?= none
+
+ifeq ($(SANITIZE),full)
+    CFLAGS_SANITIZE = -fsanitize=undefined -fsanitize-address-use-after-scope -fsanitize-undefined-trap-on-error -fstack-protector-all -fstack-check -fsanitize=address -fsanitize=pointer-compare -fno-omit-frame-pointer -static-libasan
+else ifeq ($(SANITIZE),basic)
+    CFLAGS_SANITIZE = -fstack-protector-all -fno-omit-frame-pointer
+else ifeq ($(SANITIZE),none)
+    CFLAGS_SANITIZE =
+else
+    CFLAGS_SANITIZE = -fstack-protector-all -fno-omit-frame-pointer
+endif
 
 # Root directory
 DIR_ROOT = $(CURDIR)/../../../../
@@ -43,8 +64,12 @@ INCLUDE += -I.
 LIBPATH = -L$(LIB_DIR)
 LIBS = -Wl,--whole-archive $(CONTROL_LIB) -Wl,--no-whole-archive
 
-# Check if replxx is installed by looking for the header file
-REPLXX_INSTALLED := $(shell if [ -f /usr/include/replxx.h ] || [ -f /usr/local/include/replxx.h ]; then echo "yes"; else echo "no"; fi)
+# Check if replxx is installed by testing if the compiler can find the header
+# This is more flexible than hardcoding paths and works with:
+#   - System paths (/usr/include, /usr/local/include)
+#   - Custom include paths added via INCLUDE variable
+#   - Cross-compilation toolchain paths
+REPLXX_INSTALLED := $(shell echo '\#include <replxx.h>' | $(CROSS_COMPILE)$(CC) -E - $(INCLUDE) >/dev/null 2>&1 && echo "yes" || echo "no")
 
 ifeq ($(REPLXX_INSTALLED), yes)
     BUILD_SHELL := hosted_shell
@@ -57,9 +82,9 @@ USR_CUSTOM_RPC_OBJS = app_custom_rpc.o
 
 COMMON_OBJS = test_utils.o nw_helper_func.o $(USR_CUSTOM_RPC_OBJS)
 
-.PHONY: test stress hosted_daemon hosted_shell all clean ensure_libs
+.PHONY: test stress hosted_shell all clean ensure_libs
 
-all: ensure_libs test stress hosted_daemon $(BUILD_SHELL)
+all: ensure_libs test stress $(BUILD_SHELL)
 
 # Ensure control library is built
 ensure_libs:
@@ -79,17 +104,10 @@ stress: ensure_libs stress.out
 stress.out: $(STRESS_OBJS)
 	$(CROSS_COMPILE)$(CC) $(CFLAGS) $(CFLAGS_SANITIZE) $(INCLUDE) $(LIBPATH) $^ $(LINKER) $(LIBS) -o $(@)
 
-HOSTED_DAEMON_OBJS = hosted_daemon.o $(COMMON_OBJS)
-
-hosted_daemon: ensure_libs hosted_daemon.out
-
-hosted_daemon.out: $(HOSTED_DAEMON_OBJS)
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) $(CFLAGS_SANITIZE) $(INCLUDE) $(LIBPATH) $^ $(LINKER) $(LIBS) -o $(@)
-
 hosted_shell: ensure_libs hosted_shell.out
 
 hosted_shell.out: hosted_shell.o $(COMMON_OBJS)
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) $(CFLAGS_SANITIZE) $(INCLUDE) $(LIBPATH) -o $(@) $^ $(LINKER) $(LIBS) -lreplxx -lstdc++
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) $(CFLAGS_SANITIZE) $(INCLUDE) $(LIBPATH) -o $(@) $^ $(LINKER) $(LIBS) -lreplxx -lstdc++ $(RPATH_FLAGS)
 
 %.o: %.c
 	$(CROSS_COMPILE)$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@

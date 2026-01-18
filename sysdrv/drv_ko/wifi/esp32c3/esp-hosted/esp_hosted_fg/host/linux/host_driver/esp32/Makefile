@@ -3,7 +3,9 @@ CONFIG_TEST_RAW_TP := n
 CONFIG_INFO_LOGS=y
 CONFIG_DEBUG_LOGS=n
 CONFIG_VERBOSE_LOGS=n
-#CONFIG_ESP_HOSTED_USE_WORKQUEUE=y # If set 'n', would semaphore based solution
+
+# If set 'n', would semaphore based solution
+CONFIG_ESP_HOSTED_USE_WORKQUEUE=n
 
 # In case of SDIO as transport, one of slave chipset used,
 # CONFIG_TARGET_ESP32  OR
@@ -23,7 +25,7 @@ ARCH := arm64
 #Default interface is sdio
 MODULE_NAME=esp32_sdio
 
-#Targets passed overrrides default value
+#Targets passed overrides default value
 ifeq ($(target), sdio)
 	MODULE_NAME=esp32_sdio
 endif
@@ -72,6 +74,13 @@ ifeq ($(CONFIG_VERBOSE_LOGS), y)
 	EXTRA_CFLAGS += -DCONFIG_VERBOSE_LOGS
 endif
 
+$(info DEBUG: CONFIG_ESP_HOSTED_USE_WORKQUEUE='$(CONFIG_ESP_HOSTED_USE_WORKQUEUE)')
+$(info DEBUG: EXTRA_CFLAGS before workqueue='$(EXTRA_CFLAGS)')
+
+ifeq ($(CONFIG_ESP_HOSTED_USE_WORKQUEUE), y)
+	EXTRA_CFLAGS += -DCONFIG_ESP_HOSTED_USE_WORKQUEUE
+endif
+
 PWD := $(shell pwd)
 
 obj-m := $(MODULE_NAME).o
@@ -83,4 +92,6 @@ all:
 
 clean:
 	rm -rf *.o sdio/*.o spi/*.o *.ko
-	make ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KERNEL) M=$(PWD) clean
+	rm -rf .*.cmd .tmp_versions *.mod.c *.mod *.order *.symvers *.markers
+	rm -rf sdio/.*.cmd spi/.*.cmd
+	-@make ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KERNEL) M=$(PWD) clean 2>/dev/null || true

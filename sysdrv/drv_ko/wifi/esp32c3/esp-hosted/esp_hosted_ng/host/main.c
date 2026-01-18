@@ -23,7 +23,7 @@
 #include "esp_cfg80211.h"
 #include "esp_stats.h"
 
-#define HOST_GPIO_PIN_INVALID 4
+#define HOST_GPIO_PIN_INVALID -1
 #define CONFIG_ALLOW_MULTICAST_WAKEUP 1
 
 #define STRINGIFY_HELPER(x) #x
@@ -49,7 +49,7 @@ module_param(clockspeed, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 MODULE_PARM_DESC(clockspeed, "Hosts clock speed in MHz");
 
 module_param(raw_tp_mode, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(raw_tp_mode, "Mode choosed to test raw throughput");
+MODULE_PARM_DESC(raw_tp_mode, "Mode chosen to test raw throughput");
 
 module_param(ota_file, charp, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 MODULE_PARM_DESC(ota_file, "Ota file to update ESP firmware");
@@ -268,7 +268,7 @@ static void print_reset_reason(uint32_t reason)
 		case 11: esp_info("TGWDT_CPU_RESET\n"); break;       /**<11, Time Group reset CPU*/
 		case 12: esp_info("SW_CPU_RESET\n"); break;          /**<12, Software reset CPU*/
 		case 13: esp_info("RTCWDT_CPU_RESET\n"); break;      /**<13, RTC Watch dog Reset CPU*/
-		case 14: esp_info("EXT_CPU_RESET\n"); break;         /**<14, for APP CPU, reseted by PRO CPU*/
+		case 14: esp_info("EXT_CPU_RESET\n"); break;         /**<14, for APP CPU, reset by PRO CPU*/
 		case 15: esp_info("RTCWDT_BROWN_OUT_RESET\n"); break;/**<15, Reset when the vdd voltage is not stable*/
 		case 16: esp_info("RTCWDT_RTC_RESET\n"); break;      /**<16, RTC Watch dog reset digital core and rtc module*/
 		default: esp_info("Unknown[%u]\n", reason); break;
@@ -312,7 +312,7 @@ static int process_event_esp_bootup(struct esp_adapter *adapter, u8 *evt_buf, u8
 	while (len_left > 0) {
 		tag_len = *(pos + 1);
 
-		esp_info("Bootup Event tag: %d\n", *pos);
+		esp_info("Boot-up Event tag: %d\n", *pos);
 
 		switch (*pos) {
 		case ESP_BOOTUP_CAPABILITY:
@@ -329,11 +329,11 @@ static int process_event_esp_bootup(struct esp_adapter *adapter, u8 *evt_buf, u8
 			ret = esp_adjust_spi_clock(adapter, *(pos + 2));
 			break;
 		default:
-			esp_warn("Unsupported tag=%x in bootup event\n", *pos);
+			esp_warn("Unsupported tag=%x in boot-up event\n", *pos);
 		}
 
 		if (ret < 0) {
-			esp_err("failed to process tag=%x in bootup event\n", *pos);
+			esp_err("failed to process tag=%x in boot-up event\n", *pos);
 			return -1;
 		}
 		pos += (tag_len + 2);
@@ -357,7 +357,7 @@ static int process_event_esp_bootup(struct esp_adapter *adapter, u8 *evt_buf, u8
 
 	if (ota_file && strlen(ota_file) != 0) {
 		esp_info("OTA update requested: bin(%s)\n", ota_file);
-		// esp_start_ota(adapter, ota_file);
+		esp_start_ota(adapter, ota_file);
 		ota_file = NULL;
 		return 0;
 	}
@@ -502,64 +502,64 @@ static int esp_add_network_ifaces(struct esp_adapter *adapter)
 	return -1;
 }
 
-// int esp_start_ota(struct esp_adapter *adapter, char *ota_file)
-// {
-// 	struct file *file;
-// 	ssize_t nread;
-// 	int ret = 0;
-// 	char *ota_chunk = kmalloc(OTA_CHUNK_SIZE, GFP_KERNEL);;
+int esp_start_ota(struct esp_adapter *adapter, char *ota_file)
+{
+	struct file *file;
+	ssize_t nread;
+	int ret = 0;
+	char *ota_chunk = kmalloc(OTA_CHUNK_SIZE, GFP_KERNEL);;
 
-// 	if (!ota_chunk) {
-// 		esp_err("Failed to allocate buffer for ota_chunk\n");
-// 		return -ENOMEM;
-// 	}
+	if (!ota_chunk) {
+		esp_err("Failed to allocate buffer for ota_chunk\n");
+		return -ENOMEM;
+	}
 
-// 	memset(ota_chunk, 0, OTA_CHUNK_SIZE);
+	memset(ota_chunk, 0, OTA_CHUNK_SIZE);
 
-// 	file = filp_open(ota_file, O_RDONLY, 0);
+	file = filp_open(ota_file, O_RDONLY, 0);
 
-// 	if (IS_ERR(file)) {
-// 		esp_err("Error reading ota bin, or ota bin not found at %s \n", ota_file);
-// 		kfree(ota_chunk);
-// 		return -EINVAL;
-// 	}
+	if (IS_ERR(file)) {
+		esp_err("Error reading ota bin, or ota bin not found at %s \n", ota_file);
+		kfree(ota_chunk);
+		return -EINVAL;
+	}
 
-// 	set_bit(ESP_OTA_IN_PROGRESS, &adapter->state_flags);
-// 	if (cmd_process_ota_start(adapter->priv[ESP_STA_NW_IF]) != 0) {
-// 		esp_err("OTA Start failed\n");
-// 		ret = EINVAL;
-// 		goto done;
-// 	}
+	set_bit(ESP_OTA_IN_PROGRESS, &adapter->state_flags);
+	if (cmd_process_ota_start(adapter->priv[ESP_STA_NW_IF]) != 0) {
+		esp_err("OTA Start failed\n");
+		ret = EINVAL;
+		goto done;
+	}
 
-// 	while ((nread = kernel_read(file, ota_chunk, OTA_CHUNK_SIZE, &file->f_pos)) > 0) {
-// 		if (cmd_process_ota_write(adapter->priv[ESP_STA_NW_IF], ota_chunk, nread) !=0) {
-// 			esp_err("OTA Write failed\n");
-// 			ret = EINVAL;
-// 			goto done;
-// 		}
-// 		if (nread < OTA_CHUNK_SIZE) {
-// 			break;
-// 		}
-// 	}
+	while ((nread = kernel_read(file, ota_chunk, OTA_CHUNK_SIZE, &file->f_pos)) > 0) {
+		if (cmd_process_ota_write(adapter->priv[ESP_STA_NW_IF], ota_chunk, nread) !=0) {
+			esp_err("OTA Write failed\n");
+			ret = EINVAL;
+			goto done;
+		}
+		if (nread < OTA_CHUNK_SIZE) {
+			break;
+		}
+	}
 
-// 	if (nread < 0) {
-// 		esp_err("Failed to read ota binary file %s \n", ota_file);
-// 		ret = EINVAL;
-// 		goto done;
-// 	}
+	if (nread < 0) {
+		esp_err("Failed to read ota binary file %s \n", ota_file);
+		ret = EINVAL;
+		goto done;
+	}
 
 
-// 	ret = cmd_process_ota_end(adapter->priv[ESP_STA_NW_IF]);
-// 	if (ret != 0) {
-// 		esp_err("cmd_process_ota_end failed %d \n", ret);
-// 	}
+	ret = cmd_process_ota_end(adapter->priv[ESP_STA_NW_IF]);
+	if (ret != 0) {
+		esp_err("cmd_process_ota_end failed %d \n", ret);
+	}
 
-// done:
-// 	kfree(ota_chunk);
-// 	filp_close(file, NULL);
-// 	clear_bit(ESP_OTA_IN_PROGRESS, &adapter->state_flags);
-// 	return ret;
-// }
+done:
+	kfree(ota_chunk);
+	filp_close(file, NULL);
+	clear_bit(ESP_OTA_IN_PROGRESS, &adapter->state_flags);
+	return ret;
+}
 
 int esp_init_raw_tp(struct esp_adapter *adapter)
 {
@@ -664,7 +664,7 @@ int esp_remove_card(struct esp_adapter *adapter)
 
 	esp_stop_network_ifaces(adapter);
 	esp_cfg_cleanup(adapter);
-	/* BT may have been initialized after fw bootup event, deinit it */
+	/* BT may have been initialized after fw boot-up event, deinit it */
 	esp_deinit_bt(adapter);
 
 	if (adapter->if_rx_workqueue) {
@@ -712,11 +712,11 @@ static void process_esp_bootup_event(struct esp_adapter *adapter,
 	}
 
 	if (evt->header.status) {
-		esp_err("Incorrect ESP bootup event\n");
+		esp_err("Incorrect ESP boot-up event\n");
 		return;
 	}
 
-	esp_info("Received ESP bootup event\n");
+	esp_info("Received ESP boot-up event\n");
 	process_event_esp_bootup(adapter, evt->data, evt->len);
 }
 

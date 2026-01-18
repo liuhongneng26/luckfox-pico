@@ -116,8 +116,6 @@ static int init_app(void)
 		return FAILURE;
 	}
 
-	test_is_network_split_on();
-
 	register_event_callbacks();
 
 	#if ENABLE_HEARTBEAT

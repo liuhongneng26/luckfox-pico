@@ -55,6 +55,9 @@
   #define IS_CS_ASSERTED(sPiDeV) gpiod_get_value(((const struct spi_device*)sPiDeV)->cs_gpiod)
 #endif
 
+#ifndef CONFIG_ESP_HOSTED_USE_WORKQUEUE
+  #define CONFIG_ESP_HOSTED_USE_WORKQUEUE (0)
+#endif
 
 static struct sk_buff * read_packet(struct esp_adapter *adapter);
 static int write_packet(struct esp_adapter *adapter, struct sk_buff *skb);
@@ -69,7 +72,7 @@ static char hardware_type = ESP_PRIV_FIRMWARE_CHIP_UNRECOGNIZED;
 static atomic_t tx_pending;
 u8 first_esp_bootup_over;
 
-#if !defined(CONFIG_ESP_HOSTED_USE_WORKQUEUE)
+#if !CONFIG_ESP_HOSTED_USE_WORKQUEUE
 struct task_struct *spi_thread;
 struct semaphore spi_sem;
 #endif
@@ -117,7 +120,7 @@ static void close_data_path(void)
 
 static irqreturn_t spi_data_ready_interrupt_handler(int irq, void * dev)
 {
-#if defined(CONFIG_ESP_HOSTED_USE_WORKQUEUE)
+#if CONFIG_ESP_HOSTED_USE_WORKQUEUE
 	if (spi_context.spi_workqueue)
 		queue_work(spi_context.spi_workqueue, &spi_context.spi_work);
 #else
@@ -129,7 +132,7 @@ static irqreturn_t spi_data_ready_interrupt_handler(int irq, void * dev)
 
 static irqreturn_t spi_interrupt_handler(int irq, void * dev)
 {
-#if defined(CONFIG_ESP_HOSTED_USE_WORKQUEUE)
+#if CONFIG_ESP_HOSTED_USE_WORKQUEUE
 	if (spi_context.spi_workqueue)
 		queue_work(spi_context.spi_workqueue, &spi_context.spi_work);
 #else
@@ -194,7 +197,6 @@ static int write_packet(struct esp_adapter *adapter, struct sk_buff *skb)
 		return -EPERM;
 	}
 
-	UPDATE_HEADER_TX_PKT_NO(h);
 	if (spi_context.adapter->capabilities & ESP_CHECKSUM_ENABLED) {
 		uint16_t len = le16_to_cpu(h->len);
 		uint16_t offset = le16_to_cpu(h->offset);
@@ -215,7 +217,9 @@ static int write_packet(struct esp_adapter *adapter, struct sk_buff *skb)
 		}
 	}
 
+#if !CONFIG_ESP_HOSTED_USE_WORKQUEUE
 	up(&spi_sem);
+#endif
 
 	return 0;
 }
@@ -317,7 +321,7 @@ int process_init_event(u8 *evt_buf, u8 len)
 		return 0;
 	}
 
-	/* First bootup - do direct init */
+	/* First boot-up - do direct init */
 	ret = esp_add_card(spi_context.adapter);
 	if (ret) {
 		spi_exit();
@@ -456,13 +460,36 @@ static void esp_spi_transaction(void)
 
 	memset(&trans, 0, sizeof(trans));
 	trans.speed_hz = spi_context.spi_clk_mhz * NUMBER_1M;
-
+	/* Configure TX buffer if available */
 	if (tx_skb) {
+		struct esp_payload_header *h;
+		uint16_t len, offset;
+
 		trans.tx_buf = tx_skb->data;
+		h = (struct esp_payload_header *) trans.tx_buf;
+		UPDATE_HEADER_TX_PKT_NO(h);
+
+		/* update checksum */
+		if (spi_context.adapter->capabilities & ESP_CHECKSUM_ENABLED) {
+			len = le16_to_cpu(h->len);
+			offset = le16_to_cpu(h->offset);
+			h->checksum = 0;
+			h->checksum = cpu_to_le16(compute_checksum((u8 *)trans.tx_buf, len + offset));
+			esp_hex_dump_dbg("spi_tx: ", trans.tx_buf, min(len, 64));
+		}
 	} else {
+#if ESP_PKT_NUM_DEBUG
+		struct esp_payload_header *h;
+#endif
 		tx_skb = esp_alloc_skb(SPI_BUF_SIZE);
 		trans.tx_buf = skb_put(tx_skb, SPI_BUF_SIZE);
 		memset((void*)trans.tx_buf, 0, SPI_BUF_SIZE);
+
+#if ESP_PKT_NUM_DEBUG
+		h = (struct esp_payload_header *) trans.tx_buf;
+		UPDATE_HEADER_TX_PKT_NO(h);
+		esp_hex_dump_dbg("spi_tx: ", trans.tx_buf, 12);
+#endif
 	}
 
 	rx_skb = esp_alloc_skb(SPI_BUF_SIZE);
@@ -661,7 +688,7 @@ static int spi_dev_init(struct esp_spi_context *context)
 
 	return 0;
 }
-#if defined(CONFIG_ESP_HOSTED_USE_WORKQUEUE)
+#if CONFIG_ESP_HOSTED_USE_WORKQUEUE
 static inline void esp_spi_work(struct work_struct *work)
 {
 	esp_spi_transaction();
@@ -706,7 +733,8 @@ static int spi_init(void)
 
 	/* Init reinit work */
 	INIT_WORK(&spi_context.reinit_work, esp_spi_reinit_work);
-#if defined(CONFIG_ESP_HOSTED_USE_WORKQUEUE)
+
+#if CONFIG_ESP_HOSTED_USE_WORKQUEUE
 	esp_info("ESP: Using SPI Workqueue solution\n");
 
 	spi_context.spi_workqueue = alloc_workqueue("ESP_SPI_WORK_QUEUE",
@@ -728,6 +756,7 @@ static int spi_init(void)
 		esp_err("Failed to create esp32_spi thread\n");
 		return -EFAULT;
 	}
+	esp_info("SPI thread spawned\n");
 #endif
 
 	esp_info("ESP: SPI host config: GPIOs: Handshake[%u] DataReady[%u]\n",
@@ -781,7 +810,7 @@ static void spi_exit(void)
 		skb_queue_purge(&spi_context.tx_q[prio_q_idx]);
 		skb_queue_purge(&spi_context.rx_q[prio_q_idx]);
 	}
-#if defined(CONFIG_ESP_HOSTED_USE_WORKQUEUE)
+#if CONFIG_ESP_HOSTED_USE_WORKQUEUE
 	if (spi_context.spi_workqueue) {
 		flush_workqueue(spi_context.spi_workqueue);
 		destroy_workqueue(spi_context.spi_workqueue);
@@ -845,7 +874,7 @@ int esp_init_interface_layer(struct esp_adapter *adapter)
 	    (adapter->mod_param.spi_mode      == MOD_PARAM_UNINITIALISED) ||
 	    (adapter->mod_param.spi_handshake == MOD_PARAM_UNINITIALISED) ||
 	    (adapter->mod_param.spi_dataready == MOD_PARAM_UNINITIALISED)) {
-		esp_err("Incorrect/Uncomplete SPI config.\n\n");
+		esp_err("Incorrect/Incomplete SPI config.\n\n");
 		esp_err("You can use one of methods:\n[A] Use module params to pass:\n\t\t1) spi_bus=<bus_instance> \n\t\t2) spi_cs=<CS_instance> \n\t\t3) spi_mode=<1/2/3> \n\t\t4) spi_handshake=<gpio_val> \n\t\t5) spi_dataready=<gpio_val> \n\t\t6) resetpin=<gpio_val>\n[B] hardcode above params in start of main.c\n");
 		return -EINVAL;
 	}

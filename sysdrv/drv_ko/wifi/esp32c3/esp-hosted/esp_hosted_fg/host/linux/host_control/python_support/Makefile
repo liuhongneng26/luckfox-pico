@@ -23,6 +23,7 @@ INCLUDE += -I$(DIR_CTRL_LIB)/src/include
 INCLUDE += -I$(DIR_SERIAL)/include
 INCLUDE += -I$(DIR_COMPONENTS)/include
 INCLUDE += -I$(DIR_LINUX_PORT)/include
+INCLUDE += -I$(DIR_C_SUPPORT)
 INCLUDE += -I.
 
 LIBPATH = -L$(LIB_DIR)
