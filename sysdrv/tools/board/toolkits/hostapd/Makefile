@@ -26,6 +26,7 @@ all: lib_nl lib_openssl
 		echo "LIBS += -L${PKG_LIB_OPENSSL}/out3/lib" >> .config; \
 		echo "CFLAGS += -I${PKG_LIB_OPENSSL}/out3/include" >> .config; \
 		echo "CFLAGS += -I${PKG_LIB_NL}/out/include" >> .config; \
+		echo "CFLAGS += -I${PKG_LIB_NL}/out/include/libnl3" >> .config; \
 		echo "CC=${SYSDRV_CROSS}-gcc" >> .config; \
 		${MAKE} -C ${BUILD_TARGET_DIR} PKG_CONFIG_PATH=${PKG_CONFIG_PATH3} -j$(SYSDRV_JOBS); \
 		cp ${BUILD_TARGET_DIR}/hostapd ${BUILD_TARGET_OUT}; \

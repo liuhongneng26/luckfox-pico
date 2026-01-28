@@ -20,7 +20,9 @@ all:
 			make -j$(SYSDRV_JOBS); \
 			make install DESTDIR=$(BUILD_TARGET_OUT); \
 		popd;)
-	cp -rfp $(BUILD_TARGET_OUT)/usr/share/zoneinfo  $(SYSDRV_DIR_OUT_ROOTFS)/usr/share;
+	test -z "$(SYSDRV_DIR_OUT_ROOTFS)" || ( \
+		cp -rfp $(BUILD_TARGET_OUT)/usr/share/zoneinfo  $(SYSDRV_DIR_OUT_ROOTFS)/usr/share; \
+	)
 
 #CC=${SYSDRV_CROSS}-gcc CFLAGS=-DHAVE_STRFTIME_L=0
 
