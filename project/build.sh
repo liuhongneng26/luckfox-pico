@@ -277,8 +277,8 @@ function choose_target_board() {
 	#	MAX_BM_INDEX=0
 	#fi
 
-	range_sd_card=(0)
-	range_sd_card_spi_nand=(1 2 3 4)
+	range_sd_card=()
+	range_sd_card_spi_nand=(0 1 2 3 4)
 	range_emmc=(5 6 7 8 9 10 11)
 
 	if __IS_IN_ARRAY "$HW_INDEX" "${range_sd_card[@]}"; then
