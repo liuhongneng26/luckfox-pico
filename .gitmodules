@@ -1,0 +1,3 @@
+[submodule "sysdrv/drv_ko/wifi/esp32c3/esp-hosted"]
+	path = sysdrv/drv_ko/wifi/esp32c3/esp-hosted
+	url = git@github.com:liuhongneng26/esp-hosted.git
