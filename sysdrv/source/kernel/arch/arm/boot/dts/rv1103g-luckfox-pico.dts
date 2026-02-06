@@ -44,9 +44,9 @@
 };
 
 /**********ETH**********/
-// &gmac {
-// 	status = "okay";
-// };
+&gmac {
+	status = "disabled";
+};
 
 /**********USB**********/
 //&usbdrd {
