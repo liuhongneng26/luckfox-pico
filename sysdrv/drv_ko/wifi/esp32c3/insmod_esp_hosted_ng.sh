@@ -1,0 +1,13 @@
+#!/bin/sh
+
+RSETET_PIN=145
+SPI_HANDSHAKE_PIN=34
+SPI_DATDREADY_PIN=4
+SPI_CS_PIN=48
+SPI_CLOCKS_SPEED=10
+SPI_BUS=0
+SPI_MODE=0
+
+
+cd /oem/usr/ko/
+insmod esp32_spi_ng.ko resetpin=${RSETET_PIN}
