@@ -12,7 +12,7 @@ FG_TARGET := ${FG_BUILD_TARGET_DIR}/esp32_spi.ko
 BUILD_TARGET_OUT := ../../out
 KERNEL_DIR :=$(CURRENT_DIR)/../../../source/objs_kernel/
 
-all:fg ng
+all:fg ng fg_app
 
 ng:
 	${MAKE} -C ${NG_BUILD_TARGET_DIR} \
@@ -32,6 +32,14 @@ fg:
 	$(SYSDRV_CROSS)strip ${FG_TARGET} --strip-debug
 	cp ${FG_TARGET} ${BUILD_TARGET_OUT}/esp32_spi_fg.ko
 	cp insmod_esp_hosted_fg.sh ${BUILD_TARGET_OUT}
+
+fg_app:
+	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/control_lib \
+	CROSS_COMPILE=$(SYSDRV_CROSS)
+	echo app
+	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support \
+	CROSS_COMPILE=$(SYSDRV_CROSS) REPLXX_INSTALLED=no
+	cp ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support/*.out ${BUILD_TARGET_OUT}
 
 clean:ng_clean fg_clean
 
