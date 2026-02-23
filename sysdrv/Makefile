@@ -476,7 +476,7 @@ kernel_menuconfig:
 	$(MAKE) -C $(KERNEL_DIR) ARCH=$(ARCH) savedefconfig
 
 kernel_savedefconfig:
-	cp  $(KERNEL_DIR)/defconfig $(KERNEL_DIR)/arch/arm/configs/$(KERNEL_CFG)
+	cp  $(KERNEL_DIR)/.config $(KERNEL_DIR)/arch/arm/configs/$(KERNEL_CFG)
 
 kernel: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build kernel  $(C_NORMAL)"
