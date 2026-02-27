@@ -82,7 +82,7 @@
 		reg = <0x51>;
 	};
 	rtc@68 {
-		compatible = "dallas,ds1307";
+		compatible = "maxim,ds3231";
 		reg = <0x68>;
 	};
 };
