@@ -39,9 +39,9 @@ fg_app: replxx
 	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/control_lib \
 	CROSS_COMPILE=$(SYSDRV_CROSS)
 	echo app
-	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support \
-	CROSS_COMPILE=$(SYSDRV_CROSS) REPLXX_INSTALLED=no
-	cp ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support/*.out ${BUILD_TARGET_OUT}
+	${MAKE} -C fg_app \
+	CROSS_COMPILE=$(SYSDRV_CROSS) REPLXX_INSTALLED=yes
+	cp ${CURRENT_DIR}/fg_app/*.out ${BUILD_TARGET_OUT}
 
 replxx:
 	mkdir -p ${CURRENT_DIR}/out/; \
@@ -54,7 +54,7 @@ replxx:
 	make && make DESTDIR=${CURRENT_DIR}/out/ install \
 	)
 
-clean:ng_clean fg_clean
+clean:ng_clean fg_clean fg_app_clean
 
 ng_clean:
 	${MAKE} -C ${NG_BUILD_TARGET_DIR} clean \
@@ -67,4 +67,7 @@ fg_clean:
 	CROSS_COMPILE=$(CROSS_COMPILE) \
 	KERNEL=$(KERNEL_DIR) \
 	target=spi
+
+fg_app_clean:
 	rm -rf ${CURRENT_DIR}/out/
+	${MAKE} -C ${CURRENT_DIR}/fg_app clean
