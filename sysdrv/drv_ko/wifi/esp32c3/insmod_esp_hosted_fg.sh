@@ -10,6 +10,7 @@ SPI_MODE=0
 
 
 cd /oem/usr/ko/
+./hosted_daemon.out
 insmod esp32_spi_fg.ko resetpin=${RSETET_PIN} \
     spi_bus=${SPI_BUS} \
     spi_cs=${SPI_CS_PIN} \
