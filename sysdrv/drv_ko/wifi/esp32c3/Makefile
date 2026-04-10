@@ -39,9 +39,9 @@ fg_app: replxx
 	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/control_lib \
 	CROSS_COMPILE=$(SYSDRV_CROSS)
 	echo app
-	${MAKE} -C fg_app \
+	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support/ \
 	CROSS_COMPILE=$(SYSDRV_CROSS) REPLXX_INSTALLED=yes
-	cp ${CURRENT_DIR}/fg_app/*.out ${BUILD_TARGET_OUT}
+	cp ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support/*.out ${BUILD_TARGET_OUT}
 
 replxx:
 	mkdir -p ${CURRENT_DIR}/out/; \
