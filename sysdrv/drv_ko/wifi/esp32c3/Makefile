@@ -35,12 +35,12 @@ fg:
 	cp ${FG_TARGET} ${BUILD_TARGET_OUT}/esp32_spi_fg.ko
 	cp insmod_esp_hosted_fg.sh ${BUILD_TARGET_OUT}
 
-fg_app: replxx
+fg_app:
 	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/control_lib \
 	CROSS_COMPILE=$(SYSDRV_CROSS)
 	echo app
 	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support/ \
-	CROSS_COMPILE=$(SYSDRV_CROSS) REPLXX_INSTALLED=yes
+	CROSS_COMPILE=$(SYSDRV_CROSS) hosted_cli.out hosted_daemon.out
 	cp ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support/*.out ${BUILD_TARGET_OUT}
 
 replxx:
@@ -69,5 +69,4 @@ fg_clean:
 	target=spi
 
 fg_app_clean:
-	rm -rf ${CURRENT_DIR}/out/
-	${MAKE} -C ${CURRENT_DIR}/fg_app clean
+	${MAKE} -C ${CURRENT_DIR}/esp-hosted/esp_hosted_fg/host/linux/host_control/c_support/ clean
