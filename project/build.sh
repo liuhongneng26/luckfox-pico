@@ -793,7 +793,7 @@ function build_driver() {
 	echo "============Start building kernel's drivers============"
 
 	mkdir -p ${RK_PROJECT_OUTPUT_IMAGE}
-	build_kernel
+	# build_kernel
 	make -C ${SDK_SYSDRV_DIR} drv
 
 	finish_build

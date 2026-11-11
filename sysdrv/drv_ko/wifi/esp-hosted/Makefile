@@ -24,6 +24,7 @@ hosted-mcu-app:
 	@test -f $(HOSTED_MCU_DIR)/tools/vendor/esp-idf-kconfig/esp_idf_kconfig/__init__.py || \
 		(echo "Missing esp-idf-kconfig submodule; run git submodule update --init $(HOSTED_MCU_DIR)/tools/vendor/esp-idf-kconfig"; exit 1)
 	rm -rf $(WIFI_STA_C_APP_BUILD)
+	mkdir $(WIFI_STA_C_APP_BUILD)
 	PATH="$(HOSTED_TOOLCHAIN_BIN)":$$PATH EH_PATH="$(HOSTED_MCU_DIR)" cmake -S "$(WIFI_STA_C_APP_DIR)" -B "$(WIFI_STA_C_APP_BUILD)" \
 		-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=arm \
 		-DCMAKE_C_COMPILER=$(SYSDRV_CROSS)gcc -DCMAKE_CXX_COMPILER=$(SYSDRV_CROSS)g++ \

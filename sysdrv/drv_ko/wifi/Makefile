@@ -26,6 +26,10 @@ ifneq ($(WIFI_SDIO),)
 	PKG_CLEAN_TARGET += build-sdio-clean
 endif
 
+ifneq ($(findstring $(RK_ENABLE_WIFI_CHIP),"ESP_HOSTED"),)
+	PKG_TARGET += build-esp-hosted
+endif
+
 endif
 
 ifeq ($(M_OUT_DIR),)
@@ -33,7 +37,7 @@ ifeq ($(M_OUT_DIR),)
 $(error Please build on upper directory)
 endif
 
-all: $(PKG_TARGET) build-esp-hosted
+all: $(PKG_TARGET)
 	@echo "build wifi done"
 	@echo "build wifi $(WIFI_RFKILL)"
 ifeq ($(ENABLE_WIFI),y)
